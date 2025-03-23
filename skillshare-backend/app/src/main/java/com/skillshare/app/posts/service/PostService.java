@@ -15,6 +15,7 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
+    // Create a new post
     public Post createPost(PostDTO postDTO, Long userId) {
         Post post = new Post();
         post.setDescription(postDTO.getDescription());
@@ -33,16 +34,9 @@ public class PostService {
         return postRepository.save(post);
     }
 
-    public List<Post> getAllPosts() {
-        return postRepository.findAll();
-    }
-
-    public Post getPostById(Long id) {
-        return postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
-    }
-
+    // Update an existing post
     public Post updatePost(Long id, PostDTO postDTO) {
-        Post post = getPostById(id);
+        Post post = postRepository.findById(id).orElseThrow(() -> new RuntimeException("Post not found"));
         post.setDescription(postDTO.getDescription());
 
         List<Media> media = postDTO.getMedia().stream()
@@ -58,7 +52,18 @@ public class PostService {
         return postRepository.save(post);
     }
 
+    // Delete a post
     public void deletePost(Long id) {
         postRepository.deleteById(id);
+    }
+
+    // Retrieve all posts
+    public List<Post> getAllPosts() {
+        return postRepository.findAll();
+    }
+
+    // Retrieve posts by user
+    public List<Post> getPostsByUser(Long userId) {
+        return postRepository.findByUserId(userId);
     }
 }
