@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { createPost, getCurrentUser, SkillPostDto } from '../api/postApi';
+import { CURRENT_USER_ID, postApi } from '../api/postApi';
+import { storage, ref, uploadBytesResumable, getDownloadURL } from '../config/firebaseConfig';
 
 const MAX_MEDIA_FILES = 3;
 const MAX_FILE_SIZE_MB = 10;
@@ -13,16 +14,30 @@ const SKILL_CATEGORIES = [
   'Marketing',
   'Lifestyle',
   'Writing'
-];
+] as const;
+
+type SkillCategory = typeof SKILL_CATEGORIES[number];
+
+interface MediaFile {
+  file: File;
+  previewUrl: string;
+  uploadProgress?: number;
+}
+
+interface FormData {
+  title: string;
+  description: string;
+  skillCategory: SkillCategory | '';
+}
 
 const CreatePostForm: React.FC = () => {
-  const [formData, setFormData] = useState<Omit<SkillPostDto, 'id' | 'userId'>>({
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
-    skillCategory: ''
+    skillCategory: '',
   });
   
-  const [mediaFiles, setMediaFiles] = useState<File[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -30,44 +45,87 @@ const CreatePostForm: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    
+  
     try {
       // Validate required fields
       if (!formData.title.trim()) throw new Error('Title is required');
       if (!formData.skillCategory) throw new Error('Skill category is required');
       if (mediaFiles.length === 0) throw new Error('At least one media file is required');
       if (mediaFiles.length > MAX_MEDIA_FILES) throw new Error(`Maximum ${MAX_MEDIA_FILES} files allowed`);
-
+  
       // Check file sizes
-      for (const file of mediaFiles) {
-        if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-          throw new Error(`File ${file.name} exceeds ${MAX_FILE_SIZE_MB}MB limit`);
+      for (const media of mediaFiles) {
+        if (media.file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+          throw new Error(`File ${media.file.name} exceeds ${MAX_FILE_SIZE_MB}MB limit`);
         }
       }
-
+  
       setIsSubmitting(true);
+  
+      // Upload files to Firebase and get URLs
+      const mediaUrls = await Promise.all(
+        mediaFiles.map(async (media, index) => {
+          try {
+            const postId = "test2"
+            const storageRef = ref(storage, `posts/${postId}/${media.file.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, media.file);
       
-      // Call API with FormData
-      await createPost(formData, mediaFiles);
-
-      // Reset form on success
+            await new Promise((resolve, reject) => {
+              uploadTask.on(
+                'state_changed',
+                (snapshot) => {
+                  const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                  setMediaFiles(prev => prev.map((file, i) =>
+                    i === index ? { ...file, uploadProgress: progress } : file
+                  ));
+                },
+                (error) => reject(error),
+                () => resolve(uploadTask)
+              );
+            });
+      
+            const fileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            return fileUrl;
+          } catch (err) {
+            console.error('Error uploading file:', err);
+            throw new Error(`Failed to upload ${media.file.name}`);
+          }
+        })
+      );
+        
+      // Create post data
+      const postData = {
+        ...formData,
+        mediaUrls,
+        userId: CURRENT_USER_ID
+      };
+  
+      console.log('Post data:', postData); // Log the post data
+  
+      // Call API to create post
+      await postApi.create(postData);
+  
+      // Reset form
       setFormData({
         title: '',
         description: '',
-        skillCategory: ''
+        skillCategory: '',
       });
       setMediaFiles([]);
-      
-      // Show success message or redirect
+  
+      // Show success
       alert('Post created successfully!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create post');
+      console.error('Error creating post:', err); // Log the error
     } finally {
       setIsSubmitting(false);
     }
   };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -77,11 +135,17 @@ const CreatePostForm: React.FC = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setMediaFiles(prev => {
-        const newFiles = Array.from(e.target.files || []);
-        const combined = [...prev, ...newFiles].slice(0, MAX_MEDIA_FILES);
-        return combined;
-      });
+      const newFiles = Array.from(e.target.files)
+        .slice(0, MAX_MEDIA_FILES - mediaFiles.length)
+        .filter(file => file.size <= MAX_FILE_SIZE_MB * 1024 * 1024);
+      
+      setMediaFiles(prev => [
+        ...prev,
+        ...newFiles.map(file => ({
+          file,
+          previewUrl: URL.createObjectURL(file)
+        }))
+      ]);
     }
   };
 
@@ -97,20 +161,26 @@ const CreatePostForm: React.FC = () => {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
+    
     if (e.dataTransfer.files) {
-      setMediaFiles(prev => {
-        const newFiles = Array.from(e.dataTransfer.files);
-        const combined = [...prev, ...newFiles].slice(0, MAX_MEDIA_FILES);
-        return combined;
-      });
+      const newFiles = Array.from(e.dataTransfer.files)
+        .slice(0, MAX_MEDIA_FILES - mediaFiles.length)
+        .filter(file => file.size <= MAX_FILE_SIZE_MB * 1024 * 1024);
+      
+      setMediaFiles(prev => [
+        ...prev,
+        ...newFiles.map(file => ({
+          file,
+          previewUrl: URL.createObjectURL(file)
+        }))
+      ]);
     }
   };
 
   const removeFile = (index: number) => {
+    URL.revokeObjectURL(mediaFiles[index].previewUrl);
     setMediaFiles(prev => prev.filter((_, i) => i !== index));
   };
-
-  const currentUser = getCurrentUser();
 
   return (
     <motion.div 
@@ -130,7 +200,7 @@ const CreatePostForm: React.FC = () => {
             Share Your Skill
           </h2>
           <p className="text-purple-600">
-            Posting as <span className="font-semibold">{currentUser.name}</span>
+            Posting as <span className="font-semibold">{"currentUser.name"}</span>
           </p>
         </motion.div>
 
@@ -183,169 +253,97 @@ const CreatePostForm: React.FC = () => {
                   name="skillCategory"
                   value={formData.skillCategory}
                   onChange={handleInputChange}
-                  className="w-full px-5 py-3 pr-10 rounded-lg border-2 border-purple-300 shadow-md focus:ring-2 focus:ring-purple-600 focus:border-purple-600 transition-all duration-200 bg-gradient-to-r from-purple-50 to-white hover:border-purple-400 appearance-none"
+                  className="w-full px-5 py-3 pr-10 rounded-lg border-2 border-purple-300 shadow-md focus:ring-2 focus:ring-purple-600 focus:border-purple-600 transition-all duration-200 bg-gradient-to-r from-purple-100 to-purple-50"
                   required
                 >
-                  <option value="" className="text-gray-400">Select a category</option>
+                  <option value="">Select a category</option>
                   {SKILL_CATEGORIES.map((category) => (
-                    <option key={category} value={category} className="text-gray-800">
+                    <option key={category} value={category}>
                       {category}
                     </option>
                   ))}
                 </select>
-                {/* Custom Arrow */}
-                <svg
-                  className="absolute top-1/2 right-3 transform -translate-y-1/2 text-purple-500 pointer-events-none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
               </div>
             </div>
 
             {/* Description Field */}
             <div className="mb-6">
-              <label htmlFor="description" className="block text-sm font-medium text-purple-800 mb-2">
-                Description
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-purple-800 mb-2"
+              >
+                Skill Description
               </label>
               <textarea
                 id="description"
                 name="description"
+                rows={5}
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Describe your skill in detail..."
-                rows={4}
-                className="w-full px-4 py-3 rounded-xl border border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
+                placeholder="Tell us more about your skill!"
+                className="w-full px-4 py-3 rounded-xl border border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
               />
             </div>
-            
-            {/* Media Upload Section */}
-            <div className="mb-8">
-              <label className="block text-sm font-medium text-purple-800 mb-2">
-                Add Media (Max {MAX_MEDIA_FILES} files) *
-              </label>
-              
-              <div 
-                className={`border-2 border-dashed rounded-2xl p-6 text-center transition-all duration-300 ${isDragging ? 'border-purple-500 bg-purple-50' : 'border-purple-300 hover:border-purple-400'}`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                <div className="flex flex-col items-center justify-center space-y-3">
-                  <svg className="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <p className="text-sm text-purple-600">
-                    {isDragging ? 'Drop your files here' : 'Drag & drop files here, or click to browse'}
-                  </p>
-                  <input
-                    id="media"
-                    type="file"
-                    multiple
-                    accept="image/*,video/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  <label 
-                    htmlFor="media"
-                    className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium hover:bg-purple-200 transition-colors duration-200 cursor-pointer"
-                  >
-                    Select Files
-                  </label>
-                  <p className="text-xs text-purple-500 mt-2">
-                    Max {MAX_FILE_SIZE_MB}MB per file • Images or Videos
-                  </p>
-                </div>
-              </div>
 
-              {mediaFiles.length > 0 && (
-                <motion.div 
-                  className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {mediaFiles.map((file, index) => (
-                    <motion.div 
-                      key={index}
-                      className="relative group rounded-xl overflow-hidden border border-purple-200"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: 'spring', stiffness: 400 }}
-                    >
-                      {file.type.startsWith('image/') ? (
-                        <img 
-                          src={URL.createObjectURL(file)} 
-                          alt={`Preview ${index + 1}`}
-                          className="w-full h-40 object-cover"
-                        />
-                      ) : (
-                        <video 
-                          src={URL.createObjectURL(file)}
-                          className="w-full h-40 object-cover"
-                          controls={false}
-                        />
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-                        <p className="text-white text-sm truncate">{file.name}</p>
-                        <p className="text-purple-200 text-xs">{(file.size / (1024 * 1024)).toFixed(2)}MB</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeFile(index)}
-                        className="absolute top-2 right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                      >
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-            </div>
-            
-            <motion.button
-              type="submit"
-              disabled={isSubmitting}
-              className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-300 flex items-center justify-center ${isSubmitting ? 'bg-purple-400' : 'bg-gradient-to-r from-purple-600 to-purple-400 hover:from-purple-700 hover:to-purple-500 shadow-lg hover:shadow-xl'}`}
-              whileHover={!isSubmitting ? { scale: 1.02 } : {}}
-              whileTap={!isSubmitting ? { scale: 0.98 } : {}}
+            {/* Media Files */}
+            <div
+              className={`mb-6 p-4 border-2 border-dashed rounded-xl ${
+                isDragging ? 'border-purple-500' : 'border-purple-300'
+              }`}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
             >
-              {isSubmitting ? (
-                <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                  Publish Skill
-                </>
-              )}
-            </motion.button>
-          </form>
-        </motion.div>
+              <p className="text-center text-purple-700">Drag & drop media files here or click to browse</p>
+              <input
+                type="file"
+                multiple
+                accept="image/*,video/*,audio/*"
+                onChange={handleFileChange}
+                className="hidden"
+                id="mediaFileInput"
+              />
+              <label htmlFor="mediaFileInput" className="block text-center text-purple-500 cursor-pointer">
+                Click here to select files
+              </label>
 
-        <motion.div 
-          className="mt-8 text-center text-purple-600 text-sm"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
-          <p>Your knowledge helps others grow. Share generously!</p>
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                {mediaFiles.map((media, index) => (
+                  <div key={index} className="relative">
+                    <img
+                      src={media.previewUrl}
+                      alt={`preview-${index}`}
+                      className="w-full h-48 object-cover rounded-xl"
+                    />
+                    {media.uploadProgress && (
+                      <div
+                        className="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 text-white text-xs p-1"
+                        style={{ width: `${media.uploadProgress}%` }}
+                      >
+                        {media.uploadProgress.toFixed(0)}%
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeFile(index)}
+                      className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md"
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="w-full bg-purple-600 text-white py-3 rounded-xl shadow-md hover:bg-purple-700 focus:outline-none disabled:bg-gray-400 transition-all duration-200"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Creating post...' : 'Create Post'}
+            </button>
+          </form>
         </motion.div>
       </div>
     </motion.div>
