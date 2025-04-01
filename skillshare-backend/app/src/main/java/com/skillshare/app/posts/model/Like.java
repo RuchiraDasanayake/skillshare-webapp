@@ -7,28 +7,19 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "media")
-public class Media {
+@Table(name = "likes")
+public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String fileName;
-
-    @Column(nullable = false)
-    private String fileType;
-
-    @Column(nullable = false)
-    private String fileUrl;
-
-    @Column(nullable = false)
-    private Long fileSize;
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private SkillPost post;
 
     @CreationTimestamp
-    private LocalDateTime uploadedAt;
+    private LocalDateTime createdAt;
 }
