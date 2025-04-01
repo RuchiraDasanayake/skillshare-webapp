@@ -18,14 +18,8 @@ public class EntityDtoMapper {
         dto.setSkillCategory(post.getSkillCategory());
         dto.setCreatedAt(post.getCreatedAt());
         dto.setUpdatedAt(post.getUpdatedAt());
-        
-        // Convert media files
-        if (post.getMediaFiles() != null) {
-            dto.setMediaFiles(post.getMediaFiles().stream()
-                .map(this::toMediaDto)
-                .collect(Collectors.toList()));
-        }
-        
+        dto.setMediaUrls(post.getMediaUrls()); 
+
         // Convert comments
         if (post.getComments() != null) {
             dto.setComments(post.getComments().stream()
@@ -40,18 +34,6 @@ public class EntityDtoMapper {
                 .collect(Collectors.toList()));
         }
         
-        return dto;
-    }
-
-    public MediaDto toMediaDto(Media media) {
-        MediaDto dto = new MediaDto();
-        dto.setId(media.getId());
-        dto.setFileName(media.getFileName());
-        dto.setFileType(media.getFileType());
-        dto.setFileUrl(media.getFileUrl());
-        dto.setFileSize(media.getFileSize());
-        dto.setPostId(media.getPost() != null ? media.getPost().getId() : null);
-        dto.setUploadedAt(media.getUploadedAt() != null ? media.getUploadedAt().toString() : null);
         return dto;
     }
 
@@ -85,15 +67,5 @@ public class EntityDtoMapper {
         post.setUserId(dto.getUserId());
         post.setSkillCategory(dto.getSkillCategory());
         return post;
-    }
-
-    public Media toMedia(MediaDto dto) {
-        Media media = new Media();
-        media.setId(dto.getId());
-        media.setFileName(dto.getFileName());
-        media.setFileType(dto.getFileType());
-        media.setFileUrl(dto.getFileUrl());
-        media.setFileSize(dto.getFileSize());
-        return media;
     }
 }

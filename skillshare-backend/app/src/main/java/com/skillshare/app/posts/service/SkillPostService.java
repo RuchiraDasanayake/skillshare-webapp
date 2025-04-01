@@ -10,7 +10,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,27 +19,21 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SkillPostService {
     private final SkillPostRepository postRepository;
-    // private final MediaRepository mediaRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
-    private final MediaService mediaService;
     private final EntityDtoMapper mapper;
 
     // Post Operations
     @Transactional
-    public SkillPostDto createPost(SkillPostDto postDto, List<MultipartFile> files) {
+    public SkillPostDto createPost(SkillPostDto postDto) {
         SkillPost post = new SkillPost();
         post.setTitle(postDto.getTitle());
         post.setDescription(postDto.getDescription());
         post.setUserId(postDto.getUserId());
         post.setSkillCategory(postDto.getSkillCategory());
-        
-        if (files != null && !files.isEmpty()) {
-            files.forEach(file -> {
-                Media media = mediaService.uploadMedia(file);
-                post.addMediaFile(media);
-            });
-        }
+        // Ensure mediaUrls is set properly
+        post.setMediaUrls(postDto.getMediaUrls() != null ? 
+            postDto.getMediaUrls() : new ArrayList<>());
         
         SkillPost savedPost = postRepository.save(post);
         return mapper.toSkillPostDto(savedPost);
@@ -65,6 +60,7 @@ public class SkillPostService {
         post.setTitle(postDto.getTitle());
         post.setDescription(postDto.getDescription());
         post.setSkillCategory(postDto.getSkillCategory());
+        post.setMediaUrls(postDto.getMediaUrls()); // Update media URLs
         
         SkillPost updatedPost = postRepository.save(post);
         return mapper.toSkillPostDto(updatedPost);
@@ -77,26 +73,7 @@ public class SkillPostService {
         postRepository.delete(post);
     }
 
-    // Media Operations
-    @Transactional
-    public MediaDto addMediaToPost(Long postId, MultipartFile file) {
-        SkillPost post = postRepository.findById(postId)
-            .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
-        
-        Media media = mediaService.uploadMedia(file);
-        post.addMediaFile(media);
-        
-        return mapper.toMediaDto(media);
-    }
-
-    // @Transactional
-    // public void removeMediaFromPost(Long postId, Long mediaId) {
-    //     Media media = mediaRepository.findByIdAndPostId(mediaId, postId)
-    //         .orElseThrow(() -> new ResourceNotFoundException("Media not found with id: " + mediaId));
-    //     mediaRepository.delete(media);
-    // }
-
-    // Comment Operations
+    // Comment Operations (unchanged)
     @Transactional
     public CommentDto addComment(Long postId, CommentDto commentDto) {
         SkillPost post = postRepository.findById(postId)
@@ -134,7 +111,7 @@ public class SkillPostService {
         commentRepository.delete(comment);
     }
 
-    // Like Operations
+    // Like Operations (unchanged)
     @Transactional
     public LikeDto likePost(Long postId, String userId) {
         SkillPost post = postRepository.findById(postId)
@@ -169,18 +146,10 @@ public class SkillPostService {
         return likeRepository.findByUserIdAndPostId(userId, postId).isPresent();
     }
 
-    // Additional methods
     @Transactional(readOnly = true)
     public List<CommentDto> getPostComments(Long postId) {
         return commentRepository.findByPostId(postId).stream()
             .map(mapper::toCommentDto)
             .collect(Collectors.toList());
     }
-
-    // @Transactional(readOnly = true)
-    // public List<MediaDto> getPostMedia(Long postId) {
-    //     return mediaRepository.findByPostId(postId).stream()
-    //         .map(mapper::toMediaDto)
-    //         .collect(Collectors.toList());
-    // }
 }

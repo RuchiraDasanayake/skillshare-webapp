@@ -28,8 +28,10 @@ public class SkillPost {
     @Column(nullable = false)
     private String skillCategory;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Media> mediaFiles = new ArrayList<>();
+    @ElementCollection
+    @CollectionTable(name = "post_media_urls", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "media_url")
+    private List<String> mediaUrls = new ArrayList<>(); 
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
@@ -42,12 +44,6 @@ public class SkillPost {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    // Helper methods
-    public void addMediaFile(Media media) {
-        mediaFiles.add(media);
-        media.setPost(this);
-    }
 
     public void addComment(Comment comment) {
         comments.add(comment);
