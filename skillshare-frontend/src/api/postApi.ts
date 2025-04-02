@@ -3,6 +3,7 @@ import axios from 'axios';
 const BASE_URL = 'http://localhost:8080/api/posts';
 
 export interface SkillPostDto {
+  [x: string]: any;
   id?: number;
   title: string;
   description: string;
@@ -213,4 +214,4 @@ export const likeApi = {
 
 };
 
-export const CURRENT_USER_ID = "hello"; 
+export const CURRENT_USER_ID = "Ruchira"; 

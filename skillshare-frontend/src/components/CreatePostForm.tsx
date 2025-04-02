@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Play, X } from 'lucide-react';
 import { CURRENT_USER_ID, postApi } from '../api/postApi';
 import { storage, ref, uploadBytesResumable, getDownloadURL } from '../config/firebaseConfig';
 
 const MAX_MEDIA_FILES = 3;
 const MAX_FILE_SIZE_MB = 10;
+const MAX_VIDEO_DURATION = 30; // 30 seconds
 const SKILL_CATEGORIES = [
   'Design',
   'Development',
@@ -22,6 +24,8 @@ interface MediaFile {
   file: File;
   previewUrl: string;
   uploadProgress?: number;
+  duration?: number;
+  isVideo?: boolean;
 }
 
 interface FormData {
@@ -29,6 +33,24 @@ interface FormData {
   description: string;
   skillCategory: SkillCategory | '';
 }
+
+// Utility to check if file is a video
+const isVideoFile = (file: File) => file.type.startsWith('video/');
+
+// Utility to get video duration
+const getVideoDuration = (file: File): Promise<number> => {
+  return new Promise((resolve) => {
+    const video = document.createElement('video');
+    video.preload = 'metadata';
+    
+    video.onloadedmetadata = () => {
+      window.URL.revokeObjectURL(video.src);
+      resolve(video.duration);
+    };
+    
+    video.src = URL.createObjectURL(file);
+  });
+};
 
 const CreatePostForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
@@ -53,10 +75,13 @@ const CreatePostForm: React.FC = () => {
       if (mediaFiles.length === 0) throw new Error('At least one media file is required');
       if (mediaFiles.length > MAX_MEDIA_FILES) throw new Error(`Maximum ${MAX_MEDIA_FILES} files allowed`);
   
-      // Check file sizes
+      // Check file sizes and video durations
       for (const media of mediaFiles) {
         if (media.file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
           throw new Error(`File ${media.file.name} exceeds ${MAX_FILE_SIZE_MB}MB limit`);
+        }
+        if (media.isVideo && media.duration && media.duration > MAX_VIDEO_DURATION) {
+          throw new Error(`Video ${media.file.name} exceeds ${MAX_VIDEO_DURATION} second limit`);
         }
       }
   
@@ -66,7 +91,7 @@ const CreatePostForm: React.FC = () => {
       const mediaUrls = await Promise.all(
         mediaFiles.map(async (media, index) => {
           try {
-            const postId = "test2"
+            const postId = "temp_post_id"; // Replace with actual post ID when available
             const storageRef = ref(storage, `posts/${postId}/${media.file.name}`);
             const uploadTask = uploadBytesResumable(storageRef, media.file);
       
@@ -100,8 +125,6 @@ const CreatePostForm: React.FC = () => {
         userId: CURRENT_USER_ID
       };
   
-      console.log('Post data:', postData); // Log the post data
-  
       // Call API to create post
       await postApi.create(postData);
   
@@ -117,7 +140,7 @@ const CreatePostForm: React.FC = () => {
       alert('Post created successfully!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create post');
-      console.error('Error creating post:', err); // Log the error
+      console.error('Error creating post:', err);
     } finally {
       setIsSubmitting(false);
     }
@@ -133,19 +156,38 @@ const CreatePostForm: React.FC = () => {
     }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files)
+      const files = Array.from(e.target.files)
         .slice(0, MAX_MEDIA_FILES - mediaFiles.length)
         .filter(file => file.size <= MAX_FILE_SIZE_MB * 1024 * 1024);
-      
-      setMediaFiles(prev => [
-        ...prev,
-        ...newFiles.map(file => ({
-          file,
-          previewUrl: URL.createObjectURL(file)
-        }))
-      ]);
+
+      try {
+        const processedFiles = await Promise.all(
+          files.map(async (file) => {
+            const isVideo = isVideoFile(file);
+            let duration = 0;
+            
+            if (isVideo) {
+              duration = await getVideoDuration(file);
+              if (duration > MAX_VIDEO_DURATION) {
+                throw new Error(`Video exceeds ${MAX_VIDEO_DURATION} second limit (${Math.ceil(duration)}s)`);
+              }
+            }
+
+            return {
+              file,
+              previewUrl: URL.createObjectURL(file),
+              isVideo,
+              duration
+            };
+          })
+        );
+
+        setMediaFiles(prev => [...prev, ...processedFiles]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Invalid video file');
+      }
     }
   };
 
@@ -158,22 +200,41 @@ const CreatePostForm: React.FC = () => {
     setIsDragging(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     
     if (e.dataTransfer.files) {
-      const newFiles = Array.from(e.dataTransfer.files)
+      const files = Array.from(e.dataTransfer.files)
         .slice(0, MAX_MEDIA_FILES - mediaFiles.length)
         .filter(file => file.size <= MAX_FILE_SIZE_MB * 1024 * 1024);
-      
-      setMediaFiles(prev => [
-        ...prev,
-        ...newFiles.map(file => ({
-          file,
-          previewUrl: URL.createObjectURL(file)
-        }))
-      ]);
+
+      try {
+        const processedFiles = await Promise.all(
+          files.map(async (file) => {
+            const isVideo = isVideoFile(file);
+            let duration = 0;
+            
+            if (isVideo) {
+              duration = await getVideoDuration(file);
+              if (duration > MAX_VIDEO_DURATION) {
+                throw new Error(`Video exceeds ${MAX_VIDEO_DURATION} second limit (${Math.ceil(duration)}s)`);
+              }
+            }
+
+            return {
+              file,
+              previewUrl: URL.createObjectURL(file),
+              isVideo,
+              duration
+            };
+          })
+        );
+
+        setMediaFiles(prev => [...prev, ...processedFiles]);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Invalid video file');
+      }
     }
   };
 
@@ -200,7 +261,7 @@ const CreatePostForm: React.FC = () => {
             Share Your Skill
           </h2>
           <p className="text-purple-600">
-            Posting as <span className="font-semibold">{"currentUser.name"}</span>
+            Posting as <span className="font-semibold">{CURRENT_USER_ID}</span>
           </p>
         </motion.div>
 
@@ -298,37 +359,61 @@ const CreatePostForm: React.FC = () => {
               <input
                 type="file"
                 multiple
-                accept="image/*,video/*,audio/*"
+                accept="image/*,video/*"
                 onChange={handleFileChange}
                 className="hidden"
                 id="mediaFileInput"
               />
               <label htmlFor="mediaFileInput" className="block text-center text-purple-500 cursor-pointer">
-                Click here to select files
+                Click here to select files (Max {MAX_MEDIA_FILES} files, {MAX_FILE_SIZE_MB}MB each, videos max {MAX_VIDEO_DURATION}s)
               </label>
 
               <div className="mt-4 grid grid-cols-2 gap-4">
                 {mediaFiles.map((media, index) => (
-                  <div key={index} className="relative">
-                    <img
-                      src={media.previewUrl}
-                      alt={`preview-${index}`}
-                      className="w-full h-48 object-cover rounded-xl"
-                    />
+                  <div key={index} className="relative group">
+                    {media.isVideo ? (
+                      <div className="relative w-full h-48 bg-black rounded-xl flex items-center justify-center">
+                        <video
+                          src={media.previewUrl}
+                          className="max-h-full max-w-full object-contain"
+                          muted
+                          loop
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="bg-black bg-opacity-50 rounded-full p-3">
+                            <Play className="text-white w-6 h-6" />
+                          </div>
+                        </div>
+                        {media.duration && (
+                          <div className="absolute bottom-2 right-2 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                            {Math.ceil(media.duration)}s
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <img
+                        src={media.previewUrl}
+                        alt={`preview-${index}`}
+                        className="w-full h-48 object-cover rounded-xl"
+                      />
+                    )}
                     {media.uploadProgress && (
-                      <div
-                        className="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 text-white text-xs p-1"
-                        style={{ width: `${media.uploadProgress}%` }}
-                      >
-                        {media.uploadProgress.toFixed(0)}%
+                      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50">
+                        <div 
+                          className="h-1 bg-purple-500 transition-all duration-300"
+                          style={{ width: `${media.uploadProgress}%` }}
+                        />
+                        <span className="text-white text-xs block text-center">
+                          {media.uploadProgress.toFixed(0)}%
+                        </span>
                       </div>
                     )}
                     <button
                       type="button"
                       onClick={() => removeFile(index)}
-                      className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md"
+                      className="absolute top-2 right-2 bg-white p-1 rounded-full shadow-md hover:bg-red-100 transition-colors"
                     >
-                      X
+                      <X className="w-4 h-4 text-gray-700" />
                     </button>
                   </div>
                 ))}
