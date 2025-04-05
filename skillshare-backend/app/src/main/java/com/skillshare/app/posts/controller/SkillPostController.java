@@ -8,10 +8,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 @RestController
@@ -21,12 +20,10 @@ public class SkillPostController {
 
     private final SkillPostService skillPostService;
 
-    // Post Endpoints
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping
     public ResponseEntity<SkillPostDto> createPost(
-            @RequestPart("post") @Valid SkillPostDto postDto,
-            @RequestPart(value = "files", required = false) List<MultipartFile> files) {
-        SkillPostDto createdPost = skillPostService.createPost(postDto, files);
+            @RequestBody @Valid SkillPostDto postDto) {
+        SkillPostDto createdPost = skillPostService.createPost(postDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
 
@@ -36,7 +33,7 @@ public class SkillPostController {
         return ResponseEntity.ok(post);
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<Page<SkillPostDto>> getAllPosts(
             @PageableDefault(size = 10) Pageable pageable) {
         Page<SkillPostDto> posts = skillPostService.getAllPosts(pageable);
@@ -56,23 +53,6 @@ public class SkillPostController {
         skillPostService.deletePost(id);
         return ResponseEntity.noContent().build();
     }
-
-    // Media Endpoints
-    @PostMapping(value = "/{postId}/media", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<MediaDto> addMediaToPost(
-            @PathVariable Long postId,
-            @RequestParam("file") MultipartFile file) {
-        MediaDto media = skillPostService.addMediaToPost(postId, file);
-        return ResponseEntity.status(HttpStatus.CREATED).body(media);
-    }
-
-    // @DeleteMapping("/{postId}/media/{mediaId}")
-    // public ResponseEntity<Void> removeMediaFromPost(
-    //         @PathVariable Long postId,
-    //         @PathVariable Long mediaId) {
-    //     skillPostService.removeMediaFromPost(postId, mediaId);
-    //     return ResponseEntity.noContent().build();
-    // }
 
     // Comment Endpoints
     @PostMapping("/{postId}/comments")
@@ -128,16 +108,9 @@ public class SkillPostController {
         return ResponseEntity.ok(hasLiked);
     }
 
-    // Additional Endpoints
-    @GetMapping("/{postId}/comments")
+    @GetMapping("/{postId}/comments/all")
     public ResponseEntity<List<CommentDto>> getPostComments(@PathVariable Long postId) {
         List<CommentDto> comments = skillPostService.getPostComments(postId);
         return ResponseEntity.ok(comments);
     }
-
-    // @GetMapping("/{postId}/media")
-    // public ResponseEntity<List<MediaDto>> getPostMedia(@PathVariable Long postId) {
-    //     List<MediaDto> media = skillPostService.getPostMedia(postId);
-    //     return ResponseEntity.ok(media);
-    // }
 }

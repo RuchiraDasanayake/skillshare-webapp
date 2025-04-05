@@ -171,7 +171,7 @@ const Home: React.FC = () => {
             </motion.span>
           </Link>
           <Link 
-            to="/browse" 
+            to="/all-posts" 
             className="px-8 py-4 bg-white/90 text-purple-600 font-semibold rounded-xl border border-purple-200 shadow-md hover:shadow-lg transition-all duration-500 flex items-center justify-center gap-2 hover:-translate-y-1 group backdrop-blur-sm"
           >
             <motion.span

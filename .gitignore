@@ -39,3 +39,8 @@ Thumbs.db
 
 # Ignore git attributes file
 .gitattributes
+
+#ignore .env
+.env
+firebaseConfig.ts
+

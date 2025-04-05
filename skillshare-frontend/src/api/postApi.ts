@@ -1,33 +1,17 @@
 import axios from 'axios';
 
-const BACKEND_URL = 'http://localhost:8080/api/posts';
-
-interface User {
-  id: string;
-  name: string;
-}
+const BASE_URL = 'http://localhost:8080/api/posts';
 
 export interface SkillPostDto {
+  [x: string]: any;
   id?: number;
   title: string;
   description: string;
   userId: string;
   skillCategory: string;
-  mediaFiles?: MediaDto[];
-  comments?: CommentDto[];
-  likes?: LikeDto[];
+  mediaUrls: string[];
   createdAt?: string;
   updatedAt?: string;
-}
-
-export interface MediaDto {
-  id?: number;
-  fileName: string;
-  fileType: string;
-  fileUrl: string;
-  fileSize?: number;
-  postId?: number;
-  uploadedAt?: string;
 }
 
 export interface CommentDto {
@@ -37,7 +21,6 @@ export interface CommentDto {
   postId?: number;
   parentCommentId?: number | null;
   createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface LikeDto {
@@ -47,157 +30,188 @@ export interface LikeDto {
   createdAt?: string;
 }
 
-// Mock current user - replace with actual auth implementation
-const CURRENT_USER: User = {
-  id: "user123",
-  name: "John Doe"
-};
+export interface Page<T> {
+  content: T[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+    sort: {
+      empty: boolean;
+      sorted: boolean;
+      unsorted: boolean;
+    };
+    offset: number;
+    paged: boolean;
+    unpaged: boolean;
+  };
+  last: boolean;
+  totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
+  sort: {
+    empty: boolean;
+    sorted: boolean;
+    unsorted: boolean;
+  };
+  first: boolean;
+  numberOfElements: number;
+  empty: boolean;
+}
 
-// Fetch all posts with pagination
-export const fetchAllPosts = async (page: number = 0, size: number = 10): Promise<SkillPostDto[]> => {
-  try {
-    const response = await axios.get(`${BACKEND_URL}`, {
-      params: { page, size }
-    });
-    return response.data.content || [];
-  } catch (error) {
-    console.error("Error fetching all posts:", error);
-    return [];
+const api = axios.create({
+  baseURL: BASE_URL,
+  timeout: 5000,
+});
+
+// Helper function for consistent error handling
+function handleError(error: unknown): never {
+  if (axios.isAxiosError(error)) {
+    const serverMessage = error.response?.data?.message;
+    throw new Error(serverMessage || error.message);
   }
-};
+  throw new Error('An unexpected error occurred');
+}
 
-// Fetch posts by current user
-export const fetchPostsByUser = async (userId: string): Promise<SkillPostDto[]> => {
-  try {
-    const response = await axios.get(`${BACKEND_URL}/user/${userId}`);
-    return response.data || [];
-  } catch (error) {
-    console.error("Error fetching user posts:", error);
-    return [];
-  }
-};
+// Post Operations
+export const postApi = {
+  create: async (postData: SkillPostDto): Promise<SkillPostDto> => {
+    try {
+      const response = await api.post<SkillPostDto>('', postData);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
+  },
 
-// Alias for fetchPostsByUser using current user
-export const fetchMyPosts = async (): Promise<SkillPostDto[]> => {
-  return fetchPostsByUser(CURRENT_USER.id);
-};
+  getById: async (id: number): Promise<SkillPostDto> => {
+    try {
+      const response = await api.get<SkillPostDto>(`/${id}`);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
+  },
 
-// Get single post by ID
-export const fetchPostById = async (id: number): Promise<SkillPostDto | null> => {
-  try {
-    const response = await axios.get(`${BACKEND_URL}/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching post:", error);
-    return null;
-  }
-};
-
-export const createPost = async (
-  postData: Omit<SkillPostDto, 'id' | 'userId'>, 
-  files?: File[]
-): Promise<SkillPostDto> => {
-  const formData = new FormData();
-  
-  formData.append('post', JSON.stringify({
-    ...postData,
-    userId: CURRENT_USER.id
-  }));
-
-  if (files) {
-    files.forEach(file => {
-      formData.append('files', file);
-    });
-  }
-
-  try {
-    const response = await axios.post(`${BACKEND_URL}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error creating post:", error);
-    throw error;
-  }
-};
-
-export const updatePost = async (
-  id: number, 
-  postData: Partial<SkillPostDto>
-): Promise<SkillPostDto> => {
-  try {
-    const response = await axios.put(`${BACKEND_URL}/${id}`, postData);
-    return response.data;
-  } catch (error) {
-    console.error("Error updating post:", error);
-    throw error;
-  }
-};
-
-export const deletePost = async (id: number): Promise<void> => {
-  try {
-    await axios.delete(`${BACKEND_URL}/${id}`);
-  } catch (error) {
-    console.error("Error deleting post:", error);
-    throw error;
-  }
-};
-
-// Media endpoints
-export const addMediaToPost = async (
-  postId: number, 
-  file: File
-): Promise<MediaDto> => {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  try {
-    const response = await axios.post(
-      `${BACKEND_URL}/${postId}/media`, 
-      formData,
-      {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+  getAll: async (page: number = 0, size: number = 10): Promise<Page<SkillPostDto>> => {
+    try {
+      const response = await api.get<Page<SkillPostDto>>('/all', {
+        params: { 
+          page,
+          size
         }
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error adding media:", error);
-    throw error;
+      });
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  update: async (
+    id: number,
+    postData: SkillPostDto
+  ): Promise<SkillPostDto> => {
+    try {
+      const response = await api.put<SkillPostDto>(`/${id}`, postData);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  delete: async (id: number): Promise<void> => {
+    try {
+      await api.delete(`/${id}`);
+    } catch (error) {
+      return handleError(error);
+    }
   }
 };
 
-// Comment endpoints
-export const addComment = async (
-  postId: number, 
-  content: string
-): Promise<CommentDto> => {
-  try {
-    const response = await axios.post(`${BACKEND_URL}/${postId}/comments`, {
-      content,
-      userId: CURRENT_USER.id
-    });
-    return response.data;
-  } catch (error) {
-    console.error("Error adding comment:", error);
-    throw error;
+// Comment Operations
+export const commentApi = {
+  create: async (
+    postId: number,
+    commentData: CommentDto
+  ): Promise<CommentDto> => {
+    try {
+      const response = await api.post<CommentDto>(`/${postId}/comments`, commentData);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  update: async (commentId: number, commentData: CommentDto): Promise<CommentDto> => {
+    try {
+      const response = await api.put<CommentDto>(`/comments/${commentId}`, commentData);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  delete: async (commentId: number): Promise<void> => {
+    try {
+      await api.delete(`/comments/${commentId}`);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  getByPost: async (postId: number): Promise<CommentDto[]> => {
+    try {
+      const response = await api.get<CommentDto[]>(`/${postId}/comments/all`);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
   }
 };
 
-// Like endpoints
-export const likePost = async (postId: number): Promise<LikeDto> => {
-  try {
-    const response = await axios.post(
-      `${BACKEND_URL}/${postId}/likes?userId=${CURRENT_USER.id}`
-    );
-    return response.data;
-  } catch (error) {
-    console.error("Error liking post:", error);
-    throw error;
+// Like Operations
+export const likeApi = {
+  like: async (postId: number, userId: string): Promise<LikeDto> => {
+    try {
+      const response = await api.post<LikeDto>(`/${postId}/likes`, null, {
+        params: { userId }
+      });
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  unlike: async (postId: number, userId: string): Promise<void> => {
+    try {
+      await api.delete(`/${postId}/likes`, {
+        params: { userId }
+      });
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  getCount: async (postId: number): Promise<number> => {
+    try {
+      const response = await api.get<number>(`/${postId}/likes/count`);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  checkLike: async (postId: number, userId: string): Promise<boolean> => {
+    try {
+      const response = await api.get<boolean>(`/${postId}/likes/check`, {
+        params: { userId }
+      });
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
   }
+
 };
 
-export const getCurrentUser = (): User => CURRENT_USER;
+export const CURRENT_USER_ID = "Ruchira"; 
