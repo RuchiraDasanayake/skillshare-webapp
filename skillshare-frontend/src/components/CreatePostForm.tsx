@@ -6,7 +6,8 @@ import { storage, ref, uploadBytesResumable, getDownloadURL } from '../config/fi
 
 const MAX_MEDIA_FILES = 3;
 const MAX_FILE_SIZE_MB = 10;
-const MAX_VIDEO_DURATION = 30; // 30 seconds
+const MAX_VIDEO_DURATION = 30;
+const DEFAULT_IMAGE_URL = "gs://skillshare-db.firebasestorage.app/default.png"; 
 const SKILL_CATEGORIES = [
   'Design',
   'Development',
@@ -72,7 +73,6 @@ const CreatePostForm: React.FC = () => {
       // Validate required fields
       if (!formData.title.trim()) throw new Error('Title is required');
       if (!formData.skillCategory) throw new Error('Skill category is required');
-      if (mediaFiles.length === 0) throw new Error('At least one media file is required');
       if (mediaFiles.length > MAX_MEDIA_FILES) throw new Error(`Maximum ${MAX_MEDIA_FILES} files allowed`);
   
       // Check file sizes and video durations
@@ -87,36 +87,43 @@ const CreatePostForm: React.FC = () => {
   
       setIsSubmitting(true);
   
-      // Upload files to Firebase and get URLs
-      const mediaUrls = await Promise.all(
-        mediaFiles.map(async (media, index) => {
-          try {
-            const postId = "temp_post_id"; // Replace with actual post ID when available
-            const storageRef = ref(storage, `posts/${postId}/${media.file.name}`);
-            const uploadTask = uploadBytesResumable(storageRef, media.file);
+      let mediaUrls: string[] = [];
       
-            await new Promise((resolve, reject) => {
-              uploadTask.on(
-                'state_changed',
-                (snapshot) => {
-                  const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                  setMediaFiles(prev => prev.map((file, i) =>
-                    i === index ? { ...file, uploadProgress: progress } : file
-                  ));
-                },
-                (error) => reject(error),
-                () => resolve(uploadTask)
-              );
-            });
-      
-            const fileUrl = await getDownloadURL(uploadTask.snapshot.ref);
-            return fileUrl;
-          } catch (err) {
-            console.error('Error uploading file:', err);
-            throw new Error(`Failed to upload ${media.file.name}`);
-          }
-        })
-      );
+      // Only upload files if they exist, otherwise use default URL
+      if (mediaFiles.length > 0) {
+        mediaUrls = await Promise.all(
+          mediaFiles.map(async (media, index) => {
+            try {
+              const postId = "temp_post_id"; // Replace with actual post ID when available
+              const storageRef = ref(storage, `posts/${postId}/${media.file.name}`);
+              const uploadTask = uploadBytesResumable(storageRef, media.file);
+        
+              await new Promise((resolve, reject) => {
+                uploadTask.on(
+                  'state_changed',
+                  (snapshot) => {
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    setMediaFiles(prev => prev.map((file, i) =>
+                      i === index ? { ...file, uploadProgress: progress } : file
+                    ));
+                  },
+                  (error) => reject(error),
+                  () => resolve(uploadTask)
+                );
+              });
+        
+              const fileUrl = await getDownloadURL(uploadTask.snapshot.ref);
+              return fileUrl;
+            } catch (err) {
+              console.error('Error uploading file:', err);
+              throw new Error(`Failed to upload ${media.file.name}`);
+            }
+          })
+        );
+      } else {
+        // Use the default image URL
+        mediaUrls = [await getDownloadURL(ref(storage, DEFAULT_IMAGE_URL))];
+      }
         
       // Create post data
       const postData = {
@@ -364,9 +371,17 @@ const CreatePostForm: React.FC = () => {
                 className="hidden"
                 id="mediaFileInput"
               />
-              <label htmlFor="mediaFileInput" className="block text-center text-purple-500 cursor-pointer">
+              <label 
+                htmlFor="mediaFileInput" 
+                className="block text-center text-purple-500 cursor-pointer hover:text-purple-700 transition-colors"
+              >
                 Click here to select files (Max {MAX_MEDIA_FILES} files, {MAX_FILE_SIZE_MB}MB each, videos max {MAX_VIDEO_DURATION}s)
               </label>
+              <p className="text-center text-sm text-purple-400 mt-1">
+                {mediaFiles.length === 0 ? 
+                  "No files selected - a default image will be used" : 
+                  `${mediaFiles.length} file${mediaFiles.length !== 1 ? 's' : ''} selected`}
+              </p>
 
               <div className="mt-4 grid grid-cols-2 gap-4">
                 {mediaFiles.map((media, index) => (
@@ -426,7 +441,7 @@ const CreatePostForm: React.FC = () => {
               className="w-full bg-purple-600 text-white py-3 rounded-xl shadow-md hover:bg-purple-700 focus:outline-none disabled:bg-gray-400 transition-all duration-200"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Creating post...' : 'Create Post'}
+              {isSubmitting ? 'Creating post...' : 'Share Post'}
             </button>
           </form>
         </motion.div>

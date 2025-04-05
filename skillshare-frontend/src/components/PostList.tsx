@@ -14,9 +14,9 @@ const PostList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState<number>(0);
   const [hasMore, setHasMore] = useState<boolean>(true);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery] = useState<string>("");
   const [ref, inView] = useInView();
-  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [, setIsRefreshing] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isSearching, setIsSearching] = useState<boolean>(false);
 

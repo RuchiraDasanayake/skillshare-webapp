@@ -5,14 +5,13 @@ import {
   likeApi,
   commentApi,
   CURRENT_USER_ID,
-  postApi
 } from '../api/postApi';
 import { 
   Heart, MessageSquare, Send, 
   User, ChevronDown, ChevronUp,
   Smile, Loader2,
   Play, Pause, Volume2, VolumeX,
-  Edit, Trash2, MoreVertical
+  Edit, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
@@ -27,7 +26,7 @@ interface PostCardProps {
 const MAX_DESCRIPTION_LENGTH = 200;
 const VIDEO_EXTENSIONS = ['mp4', 'webm', 'mov', 'avi', 'mkv'];
 
-const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
+const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const currentUserId = CURRENT_USER_ID;
   
   // State management
@@ -54,17 +53,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
     }
   }>({});
   const [editingComment, setEditingComment] = useState<CommentDto | null>(null);
-  const [showPostMenu, setShowPostMenu] = useState(false);
   
   // Refs
   const commentRef = useRef<HTMLTextAreaElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<{[key: number]: HTMLVideoElement | null}>({});
-  const postMenuRef = useRef<HTMLDivElement>(null);
 
   // Close popups when clicking outside
   useOnClickOutside(emojiPickerRef, () => setShowEmojiPicker(false));
-  useOnClickOutside(postMenuRef, () => setShowPostMenu(false));
 
   useEffect(() => {
     const initializePostData = async () => {
@@ -205,18 +201,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
       console.error('Error updating comment:', error);
     } finally {
       setIsLoading(prev => ({...prev, edit: false}));
-    }
-  };
-
-  const handleDeletePost = async () => {
-    try {
-      setIsLoading(prev => ({...prev, delete: true}));
-      await postApi.delete(post.id!);
-      onPostDeleted?.(post.id!);
-    } catch (error) {
-      console.error('Error deleting post:', error);
-    } finally {
-      setIsLoading(prev => ({...prev, delete: false}));
     }
   };
 
@@ -610,39 +594,6 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostDeleted }) => {
             </p>
           </div>
         </div>
-        
-        {/* Post menu for owner */}
-        {post.userId === currentUserId && (
-          <div className="relative" ref={postMenuRef}>
-            <button 
-              onClick={() => setShowPostMenu(!showPostMenu)}
-              className="p-1 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
-            >
-              <MoreVertical className="w-5 h-5" />
-            </button>
-            
-            <AnimatePresence>
-              {showPostMenu && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.2 }}
-                  className="absolute right-0 top-8 bg-white shadow-lg rounded-md py-1 w-40 z-10 border border-gray-100"
-                >
-                  <button
-                    onClick={handleDeletePost}
-                    disabled={isLoading.delete}
-                    className="w-full flex items-center px-4 py-2 text-sm text-red-500 hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    {isLoading.delete ? 'Deleting...' : 'Delete Post'}
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
       </div>
 
       {/* Post Media */}

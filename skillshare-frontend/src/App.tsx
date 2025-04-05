@@ -6,6 +6,7 @@ import CreatePostForm from "./components/CreatePostForm";
 import MyPosts from "./components/MyPosts";
 import Home from "./pages/HomePage";
 import { PostProvider } from "./context/PostContext";
+import ProfileHome from "./components/ProfileHome";
 
 const App: React.FC = () => {
   return (
@@ -30,6 +31,7 @@ const App: React.FC = () => {
                 { path: "/all-posts", icon: "📜", text: "Browse" },
                 { path: "/create", icon: "✍️", text: "Create", highlight: true },
                 { path: "/my-posts", icon: "📚", text: "My Posts" },
+                { path: "/profile", icon: "👤", text: "Profile" },
               ].map(({ path, icon, text, highlight }) => (
                 <motion.li 
                   key={path} 
@@ -55,6 +57,7 @@ const App: React.FC = () => {
             <Route path="/all-posts" element={<PostList />} />
             <Route path="/create" element={<CreatePostForm />} />
             <Route path="/my-posts" element={<MyPosts />} />
+            <Route path="/profile" element={<ProfileHome />} />
           </Routes>
         </div>
       </Router>

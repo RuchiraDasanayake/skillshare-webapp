@@ -10,11 +10,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^7.0.1",
+    "@mui/lab": "^7.0.0-beta.10",
+    "@mui/material": "^7.0.1",
     "@tailwindcss/vite": "^4.0.16",
     "@types/react-textarea-autosize": "^4.3.6",
     "axios": "^1.8.4",
     "emoji-picker-react": "^4.12.2",
     "firebase": "^11.5.0",
+    "formik": "^2.4.6",
     "framer-motion": "^12.6.0",
     "lucide-react": "^0.484.0",
     "react": "^19.0.0",
