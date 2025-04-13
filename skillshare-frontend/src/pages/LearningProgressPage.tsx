@@ -1,50 +1,34 @@
+// src/pages/LearningProgressPage.tsx
 import { Container, Typography, Box } from '@mui/material';
 import { useState, useEffect } from 'react';
 import LearningProgressTabs from '../components/learning-progress/LearningProgressTabs';
+import { getUserLearningPlans } from '../api/progressApi';
 
 export default function LearningProgressPage() {
-  interface ProgressData {
-    completed: {
-      id: number;
-      courseName: string;
-      startDate: string;
-      completionDate: string;
-      skills: string[];
-      summary: string;
-    }[];
-    ongoing: {
-      id: number;
-      courseName: string;
-      progress: number;
-    }[];
-    skills: string[];
-  }
-
-  const [progressData, setProgressData] = useState<ProgressData>({
+  const [progressData, setProgressData] = useState({
     completed: [],
     ongoing: [],
     skills: [],
   });
 
   useEffect(() => {
-    // Mock data
-    setProgressData({
-      completed: [
-        {
-          id: 1,
-          courseName: 'JavaScript Basics',
-          startDate: '2025-02-20',
-          completionDate: '2025-03-20',
-          skills: ['Arrow Functions', 'Promises'],
-          summary: ''
-        }
-      ],
-      ongoing: [
-        { id: 2, courseName: 'React Intermediate', progress: 60 },
-        { id: 3, courseName: 'TypeScript Fundamentals', progress: 30 }
-      ],
-      skills: ['State Management', 'Type Annotations']
-    });
+    const fetchProgressData = async () => {
+      try {
+        // Replace with your actual user ID
+        const userId = 1; 
+        const data = await getUserLearningPlans(userId);
+        
+        setProgressData({
+          completed: data.filter((item: any) => item.type === 'COMPLETED_TUTORIAL'),
+          ongoing: data.filter((item: any) => item.type === 'ONGOING_TUTORIAL'),
+          skills: Array.from(new Set(data.flatMap((item: any) => item.skillsLearned?.split(',') || [])))
+        });
+      } catch (error) {
+        console.error('Error fetching progress data:', error);
+      }
+    };
+
+    fetchProgressData();
   }, []);
 
   return (

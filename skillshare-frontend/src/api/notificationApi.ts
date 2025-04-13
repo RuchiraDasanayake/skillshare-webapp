@@ -1,63 +1,29 @@
 // src/api/notificationApi.ts
-import type { NotificationDTO } from '../notifications/NotificationList';
+import { NotificationDTO } from '../models/notificationTypes'; // Update the path to the correct location
 
-// In-memory mock data
-let notifications: NotificationDTO[] = [
-  {
-    id: 1,
-    type: 'LIKE',
-    message: 'John liked your post on React tips!',
-    isRead: false,
-    createdAt: new Date().toISOString(),
-    userId: 1,
-  },
-  {
-    id: 2,
-    type: 'COMMENT',
-    message: 'Sarah commented on your JavaScript post.',
-    isRead: false,
-    createdAt: new Date().toISOString(),
-    userId: 1,
-  },
-  {
-    id: 3,
-    type: 'PROGRESS_UPDATE',
-    message: 'You completed the course: JavaScript Basics!',
-    isRead: true,
-    createdAt: new Date().toISOString(),
-    userId: 1,
-  },
-];
-
-// Fetch all notifications for a specific user
 export const getNotifications = async (userId: number): Promise<NotificationDTO[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(notifications.filter((n) => n.userId === userId));
-    }, 500);
+  const response = await fetch(`http://localhost:8080/api/notifications/user/${userId}`);
+  return await response.json();
+};
+
+export const markNotificationAsRead = async (id: number): Promise<void> => {
+  await fetch(`http://localhost:8080/api/notifications/${id}/read`, {
+    method: 'PUT'
   });
 };
 
-// Mark a specific notification as read
-export const markNotificationAsRead = async (id: number): Promise<void> => {
-  notifications = notifications.map((n) =>
-    n.id === id ? { ...n, isRead: true } : n
-  );
+export const markAllNotificationsAsRead = async (userId: number): Promise<void> => {
+  await fetch(`http://localhost:8080/api/notifications/user/${userId}/read-all`, {
+    method: 'PUT'
+  });
 };
 
-// Mark all notifications as read
-export const markAllNotificationsAsRead = async (): Promise<void> => {
-  notifications = notifications.map((n) => ({ ...n, isRead: true }));
-};
-
-// Add a new notification
-export const addNotification = async (
-  notification: Omit<NotificationDTO, 'id' | 'createdAt' | 'isRead'>
-): Promise<void> => {
-  notifications.push({
-    id: Date.now(),
-    ...notification,
-    createdAt: new Date().toISOString(),
-    isRead: false,
+export const addNotification = async (notification: Omit<NotificationDTO, 'id' | 'createdAt' | 'isRead'>): Promise<void> => {
+  await fetch('http://localhost:8080/api/notifications', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(notification)
   });
 };

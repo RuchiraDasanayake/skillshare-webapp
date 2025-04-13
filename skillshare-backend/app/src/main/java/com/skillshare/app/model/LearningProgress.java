@@ -6,37 +6,37 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "learning_progress")
 public class LearningProgress {
+    public enum ProgressType {
+        COMPLETED_TUTORIAL, ONGOING_TUTORIAL, NEW_SKILL, MILESTONE
+    }
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
     
-    @ManyToOne
-    @JoinColumn(name = "plan_item_id")
-    private LearningPlanItem learningPlanItem;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ProgressType type;
     
-    private ProgressType type; // COMPLETED_TUTORIAL, ONGOING_TUTORIAL, NEW_SKILL, MILESTONE
-    
+    @Column(nullable = false)
     private String title;
+    
+    @Column(length = 2000)
     private String description;
+    
     private String skillsLearned;
     private LocalDate completionDate;
     private int completionPercentage;
-    
-    public enum ProgressType {
-        COMPLETED_TUTORIAL, ONGOING_TUTORIAL, NEW_SKILL, MILESTONE
-    }
     
     // Getters and setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
-    public LearningPlanItem getLearningPlanItem() { return learningPlanItem; }
-    public void setLearningPlanItem(LearningPlanItem learningPlanItem) { this.learningPlanItem = learningPlanItem; }
     public ProgressType getType() { return type; }
     public void setType(ProgressType type) { this.type = type; }
     public String getTitle() { return title; }

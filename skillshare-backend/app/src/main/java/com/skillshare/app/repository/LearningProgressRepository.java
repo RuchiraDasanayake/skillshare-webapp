@@ -11,4 +11,6 @@ import java.util.List;
 public interface LearningProgressRepository extends JpaRepository<LearningProgress, Long> {
     List<LearningProgress> findByUser(User user);
     List<LearningProgress> findByUserAndSkill(User user, String skill);
+
+    List<LearningProgress> findByUserAndType(User user, LearningProgress.ProgressType type);
 }
