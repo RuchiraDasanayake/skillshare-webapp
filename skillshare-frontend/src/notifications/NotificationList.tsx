@@ -3,12 +3,14 @@ import { useEffect, useState } from 'react';
 import { List, ListItem, ListItemText, Typography, Paper, Button } from '@mui/material';
 import { getNotifications } from '../api/notificationApi';
 
-// Export the NotificationDTO type to be used in other parts of the application
 export interface NotificationDTO {
   id: number;
-  userId: number;
-  type: 'LIKE' | 'COMMENT' | 'PROGRESS_UPDATE';
+  recipientId: number;
+  senderId?: number;
+  senderName?: string;
+  postId?: number;
   message: string;
+  type: 'LIKE' | 'COMMENT' | 'PROGRESS_UPDATE';
   isRead: boolean;
   createdAt: string;
 }

@@ -1,3 +1,4 @@
+// src/components/learning-progress/LearningProgressTabs.tsx
 import { Tabs, Tab, Box, Typography, LinearProgress, Button } from '@mui/material';
 import { useState } from 'react';
 import CompletedTutorialCard from './CompletedTutorialCard';
@@ -21,6 +22,7 @@ export default function LearningProgressTabs({ completed, ongoing, skills }: Pro
         <Tab label="Completed Tutorials" />
         <Tab label="Ongoing Tutorials" />
         <Tab label="New Skills" />
+        <Tab label="Learning Milestones" />
       </Tabs>
 
       {value === 0 && (
@@ -50,6 +52,14 @@ export default function LearningProgressTabs({ completed, ongoing, skills }: Pro
           {skills.map((skill, index) => (
             <Typography key={index} variant="body1">✅ {skill}</Typography>
           ))}
+        </Box>
+      )}
+
+      {value === 3 && (
+        <Box>
+          <Typography variant="body1" color="text.secondary">
+            Coming soon: Track your biggest learning milestones!
+          </Typography>
         </Box>
       )}
     </Box>

@@ -1,3 +1,4 @@
+// src/main.tsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
@@ -8,7 +9,7 @@ import LearningProgressPage from './pages/LearningProgressPage';
 import NotificationsPage from './pages/NotificationsPage';
 import PostPage from './pages/PostPage';
 import { NotificationProvider } from './context/NotificationContext';
-import { UserProvider } from './context/UserContext'; // Import UserProvider
+import { UserProvider } from './context/UserContext';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

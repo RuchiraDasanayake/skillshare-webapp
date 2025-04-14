@@ -2,6 +2,8 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { NotificationDTO } from '../notifications/NotificationList';
 import { getNotifications, addNotification as apiAddNotification } from '../api/notificationApi';
+import { useWebSocket } from '../hooks/useWebSocket';
+import { useUser } from './UserContext';
 
 interface NotificationContextProps {
   notifications: NotificationDTO[];
@@ -15,6 +17,8 @@ const NotificationContext = createContext<NotificationContextProps | undefined>(
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<NotificationDTO[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const { userId } = useUser();
+  const { lastMessage } = useWebSocket(userId || '');
 
   const loadNotifications = async (userId: number) => {
     try {
@@ -29,11 +33,24 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const addNewNotification = async (notification: Omit<NotificationDTO, 'id' | 'createdAt' | 'isRead'>) => {
     try {
       await apiAddNotification(notification);
-      await loadNotifications(notification.userId);
+      await loadNotifications(notification.recipientId);
     } catch (error) {
       console.error('Error adding notification:', error);
     }
   };
+
+  useEffect(() => {
+    if (userId) {
+      loadNotifications(parseInt(userId));
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    if (lastMessage) {
+      setNotifications((prev) => [lastMessage, ...prev]);
+      setUnreadCount((prev) => prev + 1);
+    }
+  }, [lastMessage]);
 
   return (
     <NotificationContext.Provider value={{ notifications, loadNotifications, addNewNotification, unreadCount }}>

@@ -1,5 +1,5 @@
 // src/api/notificationApi.ts
-import { NotificationDTO } from '../models/notificationTypes'; // Update the path to the correct location
+import { NotificationDTO } from '../models/notificationTypes';
 
 export const getNotifications = async (userId: number): Promise<NotificationDTO[]> => {
   const response = await fetch(`http://localhost:8080/api/notifications/user/${userId}`);

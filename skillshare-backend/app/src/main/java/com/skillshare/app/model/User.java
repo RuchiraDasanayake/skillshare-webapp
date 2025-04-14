@@ -1,7 +1,7 @@
 // src/main/java/com/skillshare/app/model/User.java
 package com.skillshare.app.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 

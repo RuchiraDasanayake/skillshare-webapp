@@ -18,14 +18,12 @@ public class NotificationController {
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<NotificationDTO>> getUserNotifications(@PathVariable Long userId) {
-        List<NotificationDTO> notifications = notificationService.getUserNotifications(userId);
-        return ResponseEntity.ok(notifications);
+        return ResponseEntity.ok(notificationService.getUserNotifications(userId));
     }
 
     @GetMapping("/user/{userId}/unread")
     public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(@PathVariable Long userId) {
-        List<NotificationDTO> notifications = notificationService.getUnreadNotifications(userId);
-        return ResponseEntity.ok(notifications);
+        return ResponseEntity.ok(notificationService.getUnreadNotifications(userId));
     }
 
     @PutMapping("/{notificationId}/read")
@@ -37,6 +35,12 @@ public class NotificationController {
     @PutMapping("/user/{userId}/read-all")
     public ResponseEntity<Void> markAllAsRead(@PathVariable Long userId) {
         notificationService.markAllAsRead(userId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> createNotification(@RequestBody NotificationDTO dto) {
+        notificationService.createFromDTO(dto);
         return ResponseEntity.ok().build();
     }
 }

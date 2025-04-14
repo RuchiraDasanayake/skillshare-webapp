@@ -18,21 +18,24 @@ public class LearningProgressController {
 
     @PostMapping
     public ResponseEntity<LearningProgressDTO> createProgress(@RequestBody LearningProgressDTO progressDTO) {
-        LearningProgressDTO createdProgress = progressService.createProgress(progressDTO);
-        return ResponseEntity.ok(createdProgress);
+        return ResponseEntity.ok(progressService.createProgress(progressDTO));
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<LearningProgressDTO>> getUserProgress(@PathVariable Long userId) {
-        List<LearningProgressDTO> progressList = progressService.getUserProgress(userId);
-        return ResponseEntity.ok(progressList);
+        return ResponseEntity.ok(progressService.getUserProgress(userId));
     }
 
     @GetMapping("/user/{userId}/type/{type}")
     public ResponseEntity<List<LearningProgressDTO>> getUserProgressByType(
             @PathVariable Long userId,
             @PathVariable String type) {
-        List<LearningProgressDTO> progressList = progressService.getUserProgressByType(userId, type);
-        return ResponseEntity.ok(progressList);
+        return ResponseEntity.ok(progressService.getUserProgressByType(userId, type));
+    }
+
+    @PutMapping("/{id}/summary")
+    public ResponseEntity<Void> updateSummary(@PathVariable Long id, @RequestBody String summary) {
+        progressService.updateSummary(id, summary);
+        return ResponseEntity.ok().build();
     }
 }

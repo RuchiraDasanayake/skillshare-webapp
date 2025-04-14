@@ -1,13 +1,19 @@
+// src/components/learning-progress/CompletedTutorialCard.tsx
 import { Card, CardContent, Typography, TextField, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { useState } from 'react';
 
 export default function CompletedTutorialCard({ tutorial }: any) {
-  const [summary, setSummary] = useState(tutorial.summary || '');
+  const [summary, setSummary] = useState(tutorial.summary || tutorial.description || '');
   const [isEditing, setIsEditing] = useState(!summary);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [tempSummary, setTempSummary] = useState(summary);
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    await fetch(`http://localhost:8080/api/progress/${tutorial.id}/summary`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'text/plain' },
+      body: tempSummary
+    });
     setSummary(tempSummary);
     setIsEditing(false);
   };
@@ -26,10 +32,10 @@ export default function CompletedTutorialCard({ tutorial }: any) {
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent>
-        <Typography variant="h6">{tutorial.courseName}</Typography>
+        <Typography variant="h6">{tutorial.courseName || tutorial.title}</Typography>
         <Typography>Started: {tutorial.startDate}</Typography>
         <Typography>Completed: {tutorial.completionDate}</Typography>
-        <Typography>Skills: {tutorial.skills.join(', ')}</Typography>
+        <Typography>Skills: {tutorial.skills?.join(', ') || tutorial.skillsLearned}</Typography>
 
         {isEditing ? (
           <Box mt={2}>
