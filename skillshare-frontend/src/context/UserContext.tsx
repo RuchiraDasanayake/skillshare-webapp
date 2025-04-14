@@ -1,5 +1,4 @@
-// src/context/UserContext.tsx
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 interface UserContextType {
   userId: string | null;
@@ -10,6 +9,22 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch('http://localhost:8080/api/users/1')
+      .then((res) => {
+        if (!res.ok) throw new Error('User fetch failed');
+        return res.json();
+      })
+      .then((data) => {
+        console.log('Loaded user:', data);
+        setUserId(data.id.toString());
+      })
+      .catch((err) => {
+        console.error('Failed to load user:', err);
+        setUserId(null);
+      });
+  }, []);
 
   return (
     <UserContext.Provider value={{ userId, setUserId }}>

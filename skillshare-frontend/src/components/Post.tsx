@@ -1,82 +1,28 @@
-// src/components/Post.tsx
-import React, { useState } from 'react';
-import { Button, TextField, Box, Typography } from '@mui/material';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 
 interface PostProps {
-  postId: string;
-  postOwnerId: string; // Post owner id to send notifications to
-  postContent: string;
+  userId: number;
 }
 
-const Post: React.FC<PostProps> = ({ postId, postOwnerId, postContent }) => {
-  const { userId } = useParams();
-  const [likes, setLikes] = useState<number>(0);
-  const [comments, setComments] = useState<string[]>([]);
-  const [commentText, setCommentText] = useState('');
+const Post: React.FC<PostProps> = ({ userId }) => {
+  const [posts, setPosts] = useState<any[]>([]);
 
-  const handleLike = () => {
-    setLikes(likes + 1);
-
-    // Create a notification for the post owner when liked
-    const notification = {
-      userId: postOwnerId, // Send notification to post owner
-      message: `${userId} liked your post!`,
-      type: 'like',
-      timestamp: new Date().toISOString(),
-    };
-
-    // You'd want to handle adding this notification properly, depending on your state management (Redux, context API, etc.)
-    console.log('Notification for like:', notification);
-  };
-
-  const handleComment = () => {
-    if (commentText) {
-      setComments([...comments, commentText]);
-      setCommentText('');
-
-      // Create a notification for the post owner when commented
-      const notification = {
-        userId: postOwnerId, // Send notification to post owner
-        message: `${userId} commented: "${commentText}" on your post.`,
-        type: 'comment',
-        timestamp: new Date().toISOString(),
-      };
-
-      // Add the notification logic here (again, depending on your state management)
-      console.log('Notification for comment:', notification);
-    }
-  };
+  useEffect(() => {
+    fetch(`http://localhost:8080/api/posts/user/${userId}`)
+      .then((res) => res.json())
+      .then((data) => setPosts(data))
+      .catch((err) => console.error('Failed to fetch posts', err));
+  }, [userId]);
 
   return (
-    <Box sx={{ border: 1, p: 2, mb: 2 }}>
-      <Typography variant="h6">Post Content</Typography>
-      <Typography variant="body1" sx={{ mb: 2 }}>
-        {postContent}
-      </Typography>
-      <Button onClick={handleLike}>Like</Button>
-      <Typography variant="body2" sx={{ mt: 1 }}>
-        {likes} Likes
-      </Typography>
-      <TextField
-        label="Add a comment"
-        value={commentText}
-        onChange={(e) => setCommentText(e.target.value)}
-        fullWidth
-        sx={{ mt: 2 }}
-      />
-      <Button onClick={handleComment} sx={{ mt: 1 }}>
-        Add Comment
-      </Button>
-
-      <Box sx={{ mt: 2 }}>
-        {comments.map((comment, index) => (
-          <Typography key={index} variant="body2" sx={{ mt: 1 }}>
-            {comment}
-          </Typography>
-        ))}
-      </Box>
-    </Box>
+    <div>
+      <h2 className="text-lg font-semibold mb-2">User {userId}'s Posts</h2>
+      {posts.map((post) => (
+        <div key={post.id} className="border p-3 mb-3 rounded shadow">
+          <p>{post.content}</p>
+        </div>
+      ))}
+    </div>
   );
 };
 
