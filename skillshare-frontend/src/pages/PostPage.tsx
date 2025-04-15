@@ -127,20 +127,22 @@ const PostPage = () => {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-3xl font-bold text-primary mb-6">Your Posts</h1>
+      <h1 className="text-3xl font-bold text-primary mb-8">Your Posts</h1>
       {posts.length === 0 ? (
-        <p className="text-gray-500">No posts to show.</p>
+        <p className="text-gray-500 animate-pulse">No posts to show.</p>
       ) : (
         posts.map(post => (
-          <Post
-            key={post.id}
-            post={post}
-            currentUser={user}
-            onLike={handleLike}
-            onComment={handleComment}
-            onEditComment={handleEditComment}
-            onDeleteComment={handleDeleteComment}
-          />
+          <div className="transition duration-300 transform hover:scale-[1.02]">
+            <Post
+              key={post.id}
+              post={post}
+              currentUser={user}
+              onLike={handleLike}
+              onComment={handleComment}
+              onEditComment={handleEditComment}
+              onDeleteComment={handleDeleteComment}
+            />
+          </div>
         ))
       )}
     </div>

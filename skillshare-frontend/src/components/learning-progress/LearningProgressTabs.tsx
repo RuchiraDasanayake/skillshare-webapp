@@ -12,15 +12,15 @@ const LearningProgressTabs = () => {
   ];
 
   return (
-    <div>
-      <div className="flex flex-wrap gap-2 mb-6">
-        {tabs.map(tab => (
+    <div className="space-y-6">
+      <div className="flex flex-wrap gap-3 justify-center">
+        {tabs.map((tab) => (
           <button
             key={tab.type}
             onClick={() => setActiveTab(tab.type)}
-            className={`px-4 py-2 text-sm rounded-lg font-medium transition duration-200 shadow-sm ${
+            className={`px-4 py-2 text-sm font-medium rounded-full shadow transition duration-200 ${
               activeTab === tab.type
-                ? 'bg-primary text-white shadow-md'
+                ? 'bg-primary text-white'
                 : 'bg-gray-100 text-gray-700 hover:bg-primary/10 hover:text-primary'
             }`}
           >
@@ -29,7 +29,7 @@ const LearningProgressTabs = () => {
         ))}
       </div>
 
-      <div className="border rounded-lg p-4 bg-white shadow-sm">
+      <div className="rounded-lg border bg-white p-4 shadow">
         <LearningProgressList type={activeTab} />
       </div>
     </div>

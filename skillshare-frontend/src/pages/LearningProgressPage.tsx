@@ -3,8 +3,10 @@ import LearningProgressTabs from '../components/learning-progress/LearningProgre
 
 const LearningProgressPage = () => {
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-primary mb-6">Your Learning Progress</h1>
+    <div className="min-h-screen p-6 max-w-4xl mx-auto bg-white text-gray-800">
+      <h1 className="text-3xl font-bold text-primary mb-8 text-center drop-shadow-sm">
+        🎓 Learning Progress Overview
+      </h1>
       <div className="bg-white p-4 rounded-lg shadow">
         <LearningProgressTabs />
       </div>
