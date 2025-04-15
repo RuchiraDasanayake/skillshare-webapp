@@ -1,15 +1,4 @@
-// src/components/learning-progress/LearningProgressForm.tsx
 import React, { useState } from 'react';
-import {
-  Button,
-  TextField,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Box,
-  Typography
-} from '@mui/material';
 
 interface LearningProgressFormProps {
   userId: number;
@@ -52,76 +41,82 @@ const LearningProgressForm: React.FC<LearningProgressFormProps> = ({
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-      <Typography variant="h6" gutterBottom>
+    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow space-y-4">
+      <h2 className="text-2xl font-bold text-primary">
         {initialData ? 'Update Progress' : 'Add New Progress'}
-      </Typography>
+      </h2>
 
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="skill-label">Skill</InputLabel>
-        <Select
-          labelId="skill-label"
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">Skill</label>
+        <select
           value={skill}
-          onChange={(e) => setSkill(e.target.value as string)}
-          label="Skill"
+          onChange={(e) => setSkill(e.target.value)}
           required
+          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
         >
-          <MenuItem value="Coding">Coding</MenuItem>
-          <MenuItem value="Cooking">Cooking</MenuItem>
-          <MenuItem value="Photography">Photography</MenuItem>
-          <MenuItem value="DIY Crafts">DIY Crafts</MenuItem>
-          <MenuItem value="Other">Other</MenuItem>
-        </Select>
-      </FormControl>
+          <option value="">Select a skill</option>
+          <option value="Coding">Coding</option>
+          <option value="Cooking">Cooking</option>
+          <option value="Photography">Photography</option>
+          <option value="DIY Crafts">DIY Crafts</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
 
-      <TextField
-        fullWidth
-        margin="normal"
-        label="Progress Title"
-        value={progressTitle}
-        onChange={(e) => setProgressTitle(e.target.value)}
-        required
-      />
-
-      <TextField
-        fullWidth
-        margin="normal"
-        label="Description"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        multiline
-        rows={4}
-        required
-      />
-
-      <TextField
-        fullWidth
-        margin="normal"
-        label="Resources Used (comma separated)"
-        value={resourcesUsed}
-        onChange={(e) => setResourcesUsed(e.target.value)}
-        placeholder="e.g., Online course, Book, Tutorial"
-      />
-
-      <FormControl fullWidth margin="normal">
-        <InputLabel id="completion-label">Completion Percentage</InputLabel>
-        <Select
-          labelId="completion-label"
-          value={completionPercentage}
-          onChange={(e) => setCompletionPercentage(e.target.value as number)}
-          label="Completion Percentage"
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">Progress Title</label>
+        <input
+          type="text"
+          value={progressTitle}
+          onChange={(e) => setProgressTitle(e.target.value)}
           required
+          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">Description</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={4}
+          required
+          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">Resources Used</label>
+        <input
+          type="text"
+          value={resourcesUsed}
+          onChange={(e) => setResourcesUsed(e.target.value)}
+          placeholder="e.g., Online course, Book, Tutorial"
+          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="text-sm font-medium">Completion Percentage</label>
+        <select
+          value={completionPercentage}
+          onChange={(e) => setCompletionPercentage(Number(e.target.value))}
+          required
+          className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
         >
           {[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100].map((value) => (
-            <MenuItem key={value} value={value}>{value}%</MenuItem>
+            <option key={value} value={value}>{value}%</option>
           ))}
-        </Select>
-      </FormControl>
+        </select>
+      </div>
 
-      <Button type="submit" variant="contained" color="primary" sx={{ mt: 2 }}>
+      <button
+        type="submit"
+        className="bg-button hover:bg-button-dark text-white px-4 py-2 rounded transition"
+      >
         {initialData ? 'Update Progress' : 'Add Progress'}
-      </Button>
-    </Box>
+      </button>
+    </form>
   );
 };
 

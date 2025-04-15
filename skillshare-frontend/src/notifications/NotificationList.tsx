@@ -1,11 +1,9 @@
-// src/notifications/NotificationList.tsx
 import { useEffect, useState } from 'react';
 import {
   List,
   ListItem,
   ListItemText,
   Typography,
-  Paper,
   Button,
   Badge
 } from '@mui/material';
@@ -43,36 +41,35 @@ export default function NotificationList({ userId }: Props) {
   }, [userId]);
 
   return (
-    <Paper elevation={3} sx={{ p: 3 }}>
-      <Typography variant="h5" gutterBottom>
-        Notifications
-      </Typography>
-
-      <Button onClick={loadNotifications} variant="outlined" sx={{ mb: 2 }}>
-        Refresh
-      </Button>
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-bold text-primary">Notifications</h2>
+        <Button onClick={loadNotifications} variant="outlined" className="hover:bg-primary/10">
+          Refresh
+        </Button>
+      </div>
 
       {loading ? (
-        <Typography>Loading...</Typography>
+        <Typography className="text-gray-500">Loading...</Typography>
       ) : notifications.length === 0 ? (
-        <Typography color="text.secondary">No notifications to show.</Typography>
+        <Typography className="text-gray-500">No notifications to show.</Typography>
       ) : (
-        <List>
+        <List className="divide-y divide-gray-200">
           {notifications.map((notification) => (
-            <ListItem key={notification.id} divider alignItems="flex-start">
+            <ListItem key={notification.id} className="flex items-start gap-2 py-3">
               <Badge
                 color="primary"
                 variant={notification.isRead ? 'standard' : 'dot'}
                 sx={{ mr: 2 }}
               />
               <ListItemText
-                primary={notification.message}
-                secondary={new Date(notification.createdAt).toLocaleString()}
+                primary={<span className="text-sm text-gray-800">{notification.message}</span>}
+                secondary={<span className="text-xs text-gray-500">{new Date(notification.createdAt).toLocaleString()}</span>}
               />
             </ListItem>
           ))}
         </List>
       )}
-    </Paper>
+    </div>
   );
 }

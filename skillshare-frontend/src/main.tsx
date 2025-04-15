@@ -14,14 +14,15 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <UserProvider>
         <NotificationProvider>
-          <Routes>
-            {/* 🔁 Default route redirects to user 1 profile */}
-            <Route path="/" element={<Navigate to="/profile/1" replace />} />
-            <Route path="/profile/:userId" element={<ProfilePage />} />
-            <Route path="/profile/:userId/posts" element={<PostPage />} />
-            <Route path="/profile/:userId/notifications" element={<NotificationsPage />} />
-            <Route path="/profile/:userId/progress" element={<LearningProgressPage />} />
-          </Routes>
+          <div className="min-h-screen bg-white text-gray-800 font-sans">
+            <Routes>
+              <Route path="/" element={<Navigate to="/profile/1" replace />} />
+              <Route path="/profile/:userId" element={<ProfilePage />} />
+              <Route path="/profile/:userId/posts" element={<PostPage />} />
+              <Route path="/profile/:userId/notifications" element={<NotificationsPage />} />
+              <Route path="/profile/:userId/progress" element={<LearningProgressPage />} />
+            </Routes>
+          </div>
         </NotificationProvider>
       </UserProvider>
     </BrowserRouter>

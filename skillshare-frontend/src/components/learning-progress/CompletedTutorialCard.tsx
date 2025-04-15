@@ -1,6 +1,4 @@
-// src/components/learning-progress/CompletedTutorialCard.tsx
-import { Card, CardContent, Typography, TextField, Button, Box, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
-import { useState } from 'react';
+import React, { useState } from 'react';
 
 export default function CompletedTutorialCard({ tutorial }: any) {
   const [summary, setSummary] = useState(tutorial.summary || tutorial.description || '');
@@ -30,49 +28,64 @@ export default function CompletedTutorialCard({ tutorial }: any) {
   };
 
   return (
-    <Card sx={{ mb: 3, backgroundColor: '#f9fafb' }}>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>{tutorial.courseName || tutorial.title}</Typography>
-        <Typography variant="body2" color="textSecondary">Completed: {tutorial.completionDate}</Typography>
-        <Typography variant="body2" sx={{ mt: 1 }}>
-          <strong>Skills:</strong> {tutorial.skills?.join(', ') || tutorial.skillsLearned}
-        </Typography>
+    <div className="bg-white border rounded-lg shadow p-4">
+      <h2 className="text-xl font-semibold text-primary mb-1">{tutorial.courseName || tutorial.title}</h2>
+      <p className="text-sm text-gray-500 mb-1">Completed: {tutorial.completionDate}</p>
+      <p className="text-sm text-gray-700 mb-2">
+        <strong>Skills:</strong> {tutorial.skills?.join(', ') || tutorial.skillsLearned}
+      </p>
 
-        {isEditing ? (
-          <Box mt={2}>
-            <TextField
-              fullWidth
-              multiline
-              rows={3}
-              value={tempSummary}
-              onChange={e => setTempSummary(e.target.value)}
-              placeholder="Write a short summary about what you learned..."
-            />
-            <Button variant="contained" onClick={handleSave} sx={{ mt: 1 }}>
-              Save Summary
-            </Button>
-          </Box>
-        ) : (
-          <Box mt={2}>
-            <Typography variant="body1"><strong>Summary:</strong> {summary}</Typography>
-            <Box mt={1}>
-              <Button size="small" onClick={() => setIsEditing(true)}>Update</Button>
-              <Button size="small" color="error" onClick={handleDelete}>Delete</Button>
-            </Box>
-          </Box>
-        )}
+      {isEditing ? (
+        <div className="flex flex-col gap-2">
+          <textarea
+            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-primary"
+            rows={3}
+            value={tempSummary}
+            onChange={e => setTempSummary(e.target.value)}
+            placeholder="Write a short summary about what you learned..."
+          />
+          <button
+            onClick={handleSave}
+            className="self-start bg-button hover:bg-button-dark text-white px-4 py-2 rounded transition"
+          >
+            Save Summary
+          </button>
+        </div>
+      ) : (
+        <div className="mt-2">
+          <p className="text-sm text-gray-800">
+            <strong>Summary:</strong> {summary}
+          </p>
+          <div className="mt-2 flex gap-2">
+            <button onClick={() => setIsEditing(true)} className="text-sm text-blue-600 hover:underline">
+              Update
+            </button>
+            <button onClick={handleDelete} className="text-sm text-red-500 hover:underline">
+              Delete
+            </button>
+          </div>
+        </div>
+      )}
 
-        <Dialog open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)}>
-          <DialogTitle>Delete Summary?</DialogTitle>
-          <DialogContent>
-            <Typography>Are you sure you want to delete this summary?</Typography>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setShowDeleteConfirm(false)}>No</Button>
-            <Button onClick={confirmDelete} color="error">Yes</Button>
-          </DialogActions>
-        </Dialog>
-      </CardContent>
-    </Card>
+      {showDeleteConfirm && (
+        <div className="mt-4 bg-gray-50 border border-red-300 p-3 rounded">
+          <p className="text-sm text-gray-800 mb-2">Are you sure you want to delete this summary?</p>
+          <div className="flex gap-4">
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="text-sm text-gray-600 hover:underline"
+            >
+              No
+            </button>
+            <button
+              onClick={confirmDelete}
+              className="text-sm text-red-600 hover:underline"
+            >
+              Yes, Delete
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

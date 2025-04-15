@@ -1,4 +1,3 @@
-// src/pages/PostPage.tsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Post from '../components/Post';
@@ -14,14 +13,13 @@ const PostPage = () => {
     try {
       const response = await fetch(`http://localhost:8080/api/posts/user/${userId}`);
       const data = await response.json();
-
-      // ✅ Normalize likes and comments to avoid undefined errors
-      const normalized = data.map((post: any) => ({
-        ...post,
-        likes: post.likes || [],
-        comments: post.comments || [],
-      }));
-
+      const normalized = Array.isArray(data)
+        ? data.map((post: any) => ({
+            ...post,
+            likes: post.likes || [],
+            comments: post.comments || [],
+          }))
+        : [];
       setPosts(normalized);
     } catch (err) {
       console.error('Failed to load posts', err);
@@ -39,17 +37,15 @@ const PostPage = () => {
       });
       fetchPosts();
 
-      if (!liked) {
-        const postOwner = posts.find(p => p.id === postId)?.user?.id;
-        if (postOwner && postOwner !== user.id) {
-          await addNotification({
-            recipientId: postOwner,
-            senderId: user.id,
-            message: `${user.username} liked your post!`,
-            type: 'LIKE',
-            postId
-          });
-        }
+      const postOwner = posts.find(p => p.id === postId)?.user?.id;
+      if (!liked && postOwner && postOwner !== user.id) {
+        await addNotification({
+          recipientId: postOwner,
+          senderId: user.id,
+          message: `${user.username} liked your post!`,
+          type: 'LIKE',
+          postId
+        });
       }
     } catch (err) {
       console.error('Like failed', err);
@@ -131,7 +127,7 @@ const PostPage = () => {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Your Posts</h1>
+      <h1 className="text-3xl font-bold text-primary mb-6">Your Posts</h1>
       {posts.length === 0 ? (
         <p className="text-gray-500">No posts to show.</p>
       ) : (

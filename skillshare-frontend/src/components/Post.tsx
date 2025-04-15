@@ -42,24 +42,26 @@ const Post: React.FC<Props> = ({
   const isLiked = post.likes?.some(like => like.userId === currentUser.id);
 
   return (
-    <div className="border p-4 mb-6 rounded shadow-md bg-white">
-      <p className="text-lg mb-3">{post.content}</p>
+    <div className="border rounded-lg shadow bg-white p-4 mb-6">
+      <p className="text-base text-gray-800 mb-4">{post.content}</p>
 
       <button
         onClick={() => onLike(post.id, isLiked)}
-        className="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 mb-3"
+        className={`text-white px-4 py-1 rounded transition ${
+          isLiked ? 'bg-red-500 hover:bg-red-600' : 'bg-button hover:bg-button-dark'
+        }`}
       >
         {isLiked ? 'Unlike' : 'Like'} ({post.likes?.length || 0})
       </button>
 
-      <div>
-        <h4 className="font-semibold mb-2">Comments</h4>
-        {post.comments?.map(comment => (
+      <div className="mt-4">
+        <h4 className="font-semibold mb-2 text-gray-700">Comments</h4>
+        {post.comments?.map((comment: Comment) => (
           <div key={comment.id} className="bg-gray-100 p-2 rounded mb-2">
             {editingCommentId === comment.id ? (
               <div className="flex gap-2">
                 <input
-                  className="border p-1 flex-1"
+                  className="border p-1 rounded flex-1"
                   value={editedContent}
                   onChange={(e) => setEditedContent(e.target.value)}
                 />
@@ -85,7 +87,7 @@ const Post: React.FC<Props> = ({
                 {comment.userId === currentUser.id && (
                   <div className="flex gap-2 text-sm">
                     <button
-                      className="text-blue-600"
+                      className="text-blue-600 hover:underline"
                       onClick={() => {
                         setEditedContent(comment.content);
                         setEditingCommentId(comment.id);
@@ -94,7 +96,7 @@ const Post: React.FC<Props> = ({
                       Edit
                     </button>
                     <button
-                      className="text-red-600"
+                      className="text-red-600 hover:underline"
                       onClick={() => onDeleteComment(comment.id)}
                     >
                       Delete
@@ -106,7 +108,7 @@ const Post: React.FC<Props> = ({
           </div>
         ))}
 
-        <div className="mt-2 flex gap-2">
+        <div className="mt-4 flex gap-2">
           <input
             type="text"
             placeholder="Write a comment"
@@ -121,7 +123,7 @@ const Post: React.FC<Props> = ({
                 setNewComment('');
               }
             }}
-            className="bg-green-600 text-white px-3 py-1 rounded"
+            className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
           >
             Comment
           </button>

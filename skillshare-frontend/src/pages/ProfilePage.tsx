@@ -1,4 +1,3 @@
-// src/pages/ProfilePage.tsx
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
@@ -7,27 +6,29 @@ const ProfilePage = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="p-6 max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6 text-center">Welcome to Your Profile</h1>
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6 text-gray-800">
+      <h1 className="text-4xl font-bold text-primary mb-10">Welcome to Your Profile</h1>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 w-full max-w-md">
         <button
           onClick={() => navigate(`/profile/${userId}/notifications`)}
-          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow"
+          className="bg-button hover:bg-button-dark text-white py-3 rounded-xl shadow-md transition duration-300"
         >
-          View Notifications
+          🔔 View Notifications
         </button>
+
         <button
           onClick={() => navigate(`/profile/${userId}/posts`)}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow"
+          className="bg-button hover:bg-button-dark text-white py-3 rounded-xl shadow-md transition duration-300"
         >
-          View Posts
+          📝 View Posts
         </button>
+
         <button
           onClick={() => navigate(`/profile/${userId}/progress`)}
-          className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded shadow"
+          className="bg-button hover:bg-button-dark text-white py-3 rounded-xl shadow-md transition duration-300"
         >
-          View Learning Progress
+          🎯 View Learning Progress
         </button>
       </div>
     </div>

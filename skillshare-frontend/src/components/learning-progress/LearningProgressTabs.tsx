@@ -1,4 +1,3 @@
-// src/components/learning-progress/LearningProgressTabs.tsx
 import React, { useState } from 'react';
 import LearningProgressList from './LearningProgressList';
 
@@ -14,20 +13,23 @@ const LearningProgressTabs = () => {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-6">
         {tabs.map(tab => (
           <button
             key={tab.type}
             onClick={() => setActiveTab(tab.type)}
-            className={`px-4 py-2 rounded ${
-              activeTab === tab.type ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'
+            className={`px-4 py-2 text-sm rounded-lg font-medium transition duration-200 shadow-sm ${
+              activeTab === tab.type
+                ? 'bg-primary text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-primary/10 hover:text-primary'
             }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
-      <div className="border rounded p-4 shadow bg-white">
+
+      <div className="border rounded-lg p-4 bg-white shadow-sm">
         <LearningProgressList type={activeTab} />
       </div>
     </div>
