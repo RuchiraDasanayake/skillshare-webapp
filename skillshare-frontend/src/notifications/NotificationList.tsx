@@ -1,6 +1,14 @@
 // src/notifications/NotificationList.tsx
 import { useEffect, useState } from 'react';
-import { List, ListItem, ListItemText, Typography, Paper, Button } from '@mui/material';
+import {
+  List,
+  ListItem,
+  ListItemText,
+  Typography,
+  Paper,
+  Button,
+  Badge
+} from '@mui/material';
 import { getNotifications } from '../api/notificationApi';
 
 export interface NotificationDTO {
@@ -51,7 +59,12 @@ export default function NotificationList({ userId }: Props) {
       ) : (
         <List>
           {notifications.map((notification) => (
-            <ListItem key={notification.id} divider>
+            <ListItem key={notification.id} divider alignItems="flex-start">
+              <Badge
+                color="primary"
+                variant={notification.isRead ? 'standard' : 'dot'}
+                sx={{ mr: 2 }}
+              />
               <ListItemText
                 primary={notification.message}
                 secondary={new Date(notification.createdAt).toLocaleString()}

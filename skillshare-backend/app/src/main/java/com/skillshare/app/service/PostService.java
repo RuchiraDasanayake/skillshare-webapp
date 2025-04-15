@@ -2,11 +2,11 @@ package com.skillshare.app.service;
 
 import com.skillshare.app.dto.PostDTO;
 import com.skillshare.app.exception.ResourceNotFoundException;
+import com.skillshare.app.model.Notification;
 import com.skillshare.app.model.Post;
 import com.skillshare.app.model.User;
 import com.skillshare.app.repository.PostRepository;
 import com.skillshare.app.repository.UserRepository;
-import com.skillshare.app.model.Notification; // Ensure this is the correct package for Notification
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,8 +22,8 @@ public class PostService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
 
-    public PostService(PostRepository postRepository, UserRepository userRepository, 
-                      NotificationService notificationService) {
+    public PostService(PostRepository postRepository, UserRepository userRepository,
+                       NotificationService notificationService) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
         this.notificationService = notificationService;
@@ -69,6 +69,7 @@ public class PostService {
                 createLikeNotification(post, userId);
             }
         }
+
         postRepository.save(post);
     }
 
@@ -89,12 +90,24 @@ public class PostService {
     private PostDTO convertToDTO(Post post) {
         PostDTO dto = new PostDTO();
         dto.setId(post.getId());
-        dto.setUserId(post.getUser().getId());
-        dto.setUsername(post.getUser().getUsername());
         dto.setContent(post.getContent());
         dto.setCreatedAt(post.getCreatedAt());
+
+        // ✅ Safe access to user (prevents LazyInitializationException)
+        if (post.getUser() != null) {
+            dto.setUserId(post.getUser().getId());
+            dto.setUsername(post.getUser().getUsername());
+        } else {
+            dto.setUserId(null);
+            dto.setUsername("Unknown");
+        }
+
+        // ✅ likedBy is a Set<Long>
         dto.setLikedBy(post.getLikedBy());
-        dto.setCommentCount((long) post.getComments().size());
+
+        // ✅ Prevent null pointer if comments list is missing
+        dto.setCommentCount(post.getComments() != null ? (long) post.getComments().size() : 0L);
+
         return dto;
     }
 }

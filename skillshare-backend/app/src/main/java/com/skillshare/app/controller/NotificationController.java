@@ -9,7 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
-@CrossOrigin(origins = "http://localhost:5173") // ✅ allow frontend access
+@CrossOrigin(origins = "http://localhost:5173")
 public class NotificationController {
 
     private final NotificationService notificationService;
@@ -23,37 +23,9 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getUserNotifications(userId));
     }
 
-    @GetMapping("/user/{userId}/unread")
-    public ResponseEntity<List<NotificationDTO>> getUnreadNotifications(@PathVariable Long userId) {
-        return ResponseEntity.ok(notificationService.getUnreadNotifications(userId));
-    }
-
-    @PutMapping("/{notificationId}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long notificationId) {
-        notificationService.markAsRead(notificationId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PutMapping("/user/{userId}/read-all")
-    public ResponseEntity<Void> markAllAsRead(@PathVariable Long userId) {
-        notificationService.markAllAsRead(userId);
-        return ResponseEntity.ok().build();
-    }
-
     @PostMapping
     public ResponseEntity<Void> createNotification(@RequestBody NotificationDTO dto) {
         notificationService.createFromDTO(dto);
         return ResponseEntity.ok().build();
     }
-
-    @GetMapping("/test")
-    public ResponseEntity<String> test() {
-        return ResponseEntity.ok("Notification controller works ✅");
-    }
-
-    @GetMapping("/ping")
-    public String ping() {
-        return "Notification controller is active!";
-}
-
 }

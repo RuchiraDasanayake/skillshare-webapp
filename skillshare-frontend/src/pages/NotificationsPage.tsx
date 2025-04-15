@@ -1,15 +1,15 @@
+// src/pages/NotificationsPage.tsx
 import React from 'react';
 import { useUser } from '../context/UserContext';
 import NotificationList from '../notifications/NotificationList';
-import { useParams } from 'react-router-dom';
 
 const NotificationsPage = () => {
-  const { userId } = useUser();
+  const { user } = useUser();
 
   return (
-    <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Notifications</h1>
-      <NotificationList userId={userId} />
+    <div className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-2xl font-bold mb-6">Your Notifications</h1>
+      <NotificationList userId={user.id} />
     </div>
   );
 };

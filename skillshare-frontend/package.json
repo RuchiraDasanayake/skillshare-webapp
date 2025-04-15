@@ -21,8 +21,7 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.0",
-    "sockjs-client": "^1.6.1",
-    "tailwindcss": "^4.0.15"
+    "sockjs-client": "^1.6.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
@@ -32,6 +31,7 @@
     "@types/sockjs-client": "^1.5.4",
     "@vitejs/plugin-react": "^4.3.4",
     "assert": "^2.1.0",
+    "autoprefixer": "^10.4.21",
     "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "eslint": "^9.21.0",
@@ -40,10 +40,12 @@
     "globals": "^15.15.0",
     "https-browserify": "^1.0.0",
     "os-browserify": "^0.3.0",
+    "postcss": "^8.5.3",
     "process": "^0.11.10",
     "rollup-plugin-node-polyfills": "^0.2.1",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",
+    "tailwindcss": "^4.1.4",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0",

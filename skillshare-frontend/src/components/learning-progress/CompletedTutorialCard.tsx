@@ -30,12 +30,13 @@ export default function CompletedTutorialCard({ tutorial }: any) {
   };
 
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card sx={{ mb: 3, backgroundColor: '#f9fafb' }}>
       <CardContent>
-        <Typography variant="h6">{tutorial.courseName || tutorial.title}</Typography>
-        <Typography>Started: {tutorial.startDate}</Typography>
-        <Typography>Completed: {tutorial.completionDate}</Typography>
-        <Typography>Skills: {tutorial.skills?.join(', ') || tutorial.skillsLearned}</Typography>
+        <Typography variant="h6" gutterBottom>{tutorial.courseName || tutorial.title}</Typography>
+        <Typography variant="body2" color="textSecondary">Completed: {tutorial.completionDate}</Typography>
+        <Typography variant="body2" sx={{ mt: 1 }}>
+          <strong>Skills:</strong> {tutorial.skills?.join(', ') || tutorial.skillsLearned}
+        </Typography>
 
         {isEditing ? (
           <Box mt={2}>
@@ -45,7 +46,7 @@ export default function CompletedTutorialCard({ tutorial }: any) {
               rows={3}
               value={tempSummary}
               onChange={e => setTempSummary(e.target.value)}
-              placeholder="Add a summary of what you learned..."
+              placeholder="Write a short summary about what you learned..."
             />
             <Button variant="contained" onClick={handleSave} sx={{ mt: 1 }}>
               Save Summary
@@ -55,8 +56,8 @@ export default function CompletedTutorialCard({ tutorial }: any) {
           <Box mt={2}>
             <Typography variant="body1"><strong>Summary:</strong> {summary}</Typography>
             <Box mt={1}>
-              <Button onClick={() => setIsEditing(true)}>Update</Button>
-              <Button color="error" onClick={handleDelete}>Delete</Button>
+              <Button size="small" onClick={() => setIsEditing(true)}>Update</Button>
+              <Button size="small" color="error" onClick={handleDelete}>Delete</Button>
             </Box>
           </Box>
         )}

@@ -17,8 +17,8 @@ const NotificationContext = createContext<NotificationContextProps | undefined>(
 export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   const [notifications, setNotifications] = useState<NotificationDTO[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const { userId } = useUser();
-  const { lastMessage } = useWebSocket(userId || '');
+  const { user } = useUser();
+  const { lastMessage } = useWebSocket(user.id.toString());
 
   const loadNotifications = async (userId: number) => {
     try {
@@ -40,15 +40,15 @@ export const NotificationProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    if (userId) {
-      loadNotifications(parseInt(userId));
+    if (user.id) {
+      loadNotifications(user.id);
     }
-  }, [userId]);
+  }, [user.id]);
 
   useEffect(() => {
     if (lastMessage) {
-      setNotifications((prev) => [lastMessage, ...prev]);
-      setUnreadCount((prev) => prev + 1);
+      setNotifications(prev => [lastMessage, ...prev]);
+      setUnreadCount(prev => prev + 1);
     }
   }, [lastMessage]);
 

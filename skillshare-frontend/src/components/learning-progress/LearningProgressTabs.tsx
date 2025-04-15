@@ -1,38 +1,33 @@
+// src/components/learning-progress/LearningProgressTabs.tsx
 import React, { useState } from 'react';
 import LearningProgressList from './LearningProgressList';
 
 const LearningProgressTabs = () => {
   const [activeTab, setActiveTab] = useState('COMPLETED_TUTORIAL');
 
+  const tabs = [
+    { label: 'Completed Tutorials', type: 'COMPLETED_TUTORIAL' },
+    { label: 'Ongoing Tutorials', type: 'ONGOING_TUTORIAL' },
+    { label: 'New Skills Learned', type: 'NEW_SKILL' },
+    { label: 'Learning Milestones', type: 'MILESTONE' },
+  ];
+
   return (
     <div>
-      <div className="flex space-x-2 mb-4">
-        <button
-          onClick={() => setActiveTab('COMPLETED_TUTORIAL')}
-          className={`px-4 py-2 rounded ${activeTab === 'COMPLETED_TUTORIAL' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-        >
-          Completed Tutorials
-        </button>
-        <button
-          onClick={() => setActiveTab('ONGOING_TUTORIAL')}
-          className={`px-4 py-2 rounded ${activeTab === 'ONGOING_TUTORIAL' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-        >
-          Ongoing Tutorials
-        </button>
-        <button
-          onClick={() => setActiveTab('NEW_SKILL')}
-          className={`px-4 py-2 rounded ${activeTab === 'NEW_SKILL' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-        >
-          New Skills Learned
-        </button>
-        <button
-          onClick={() => setActiveTab('MILESTONE')}
-          className={`px-4 py-2 rounded ${activeTab === 'MILESTONE' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}
-        >
-          Learning Milestones
-        </button>
+      <div className="flex flex-wrap gap-2 mb-4">
+        {tabs.map(tab => (
+          <button
+            key={tab.type}
+            onClick={() => setActiveTab(tab.type)}
+            className={`px-4 py-2 rounded ${
+              activeTab === tab.type ? 'bg-blue-600 text-white' : 'bg-gray-200 hover:bg-gray-300'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
-      <div className="border rounded p-4 shadow">
+      <div className="border rounded p-4 shadow bg-white">
         <LearningProgressList type={activeTab} />
       </div>
     </div>
