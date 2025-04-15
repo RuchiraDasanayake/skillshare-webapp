@@ -3,6 +3,7 @@ package com.skillshare.app;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -11,6 +12,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 @EnableCaching
 @EnableAsync
 @EnableScheduling
+@ComponentScan(basePackages = "com.skillshare.app")
 @EntityScan(basePackages = "com.skillshare.app.model")
 public class AppApplication {
     public static void main(String[] args) {

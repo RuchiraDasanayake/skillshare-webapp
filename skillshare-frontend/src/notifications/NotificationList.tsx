@@ -16,7 +16,7 @@ export interface NotificationDTO {
 }
 
 interface Props {
-  userId: string;
+  userId: number;
 }
 
 export default function NotificationList({ userId }: Props) {
@@ -25,7 +25,7 @@ export default function NotificationList({ userId }: Props) {
 
   const loadNotifications = async () => {
     setLoading(true);
-    const notifs = await getNotifications(parseInt(userId));
+    const notifs = await getNotifications(userId);
     setNotifications(notifs);
     setLoading(false);
   };

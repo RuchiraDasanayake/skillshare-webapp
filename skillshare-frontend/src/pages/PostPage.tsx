@@ -8,7 +8,7 @@ const PostPage = () => {
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Posts</h1>
-      {userId ? <Post userId={Number(userId)} /> : <p>Loading user...</p>}
+      <Post userId={userId} />
     </div>
   );
 };

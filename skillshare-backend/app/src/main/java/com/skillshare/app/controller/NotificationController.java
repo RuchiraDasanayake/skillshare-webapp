@@ -9,7 +9,9 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
+@CrossOrigin(origins = "http://localhost:5173") // ✅ allow frontend access
 public class NotificationController {
+
     private final NotificationService notificationService;
 
     public NotificationController(NotificationService notificationService) {
@@ -43,4 +45,15 @@ public class NotificationController {
         notificationService.createFromDTO(dto);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("Notification controller works ✅");
+    }
+
+    @GetMapping("/ping")
+    public String ping() {
+        return "Notification controller is active!";
+}
+
 }
