@@ -293,13 +293,16 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     }
   };
 
-  const formatDate = (dateString?: string) => {
+  const formatDateTime = (dateString?: string) => {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleString('en-US', {
       month: 'short',
       day: 'numeric',
-      year: 'numeric'
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     });
   };
 
@@ -342,7 +345,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         </span>
       </div>
       <h3 className="font-bold text-xl mb-3 text-gray-800">{post.title}</h3>
-      <div className="relative">
+      <div className="relative h-18 overflow-y-auto">
         <p className={`text-gray-600 mb-4 ${isExpanded ? '' : 'line-clamp-3'}`}>
           {post.description}
         </p>
@@ -412,7 +415,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-medium text-sm text-gray-800">
-                    {comment.userId === currentUserId ? 'You' : `User ${comment.userId}`}
+                    {comment.userId === currentUserId ? 'You' : `@${comment.userId}`}
                   </p>
                   <p className="text-gray-600">{comment.content}</p>
                 </div>
@@ -441,7 +444,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
               
               {comment.createdAt && (
                 <p className="text-xs text-gray-400 mt-1">
-                  {formatDate(comment.createdAt)}
+                  {formatDateTime(comment.createdAt)}
                 </p>
               )}
             </div>
@@ -580,21 +583,21 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
       transition={{ duration: 0.4 }}
     >
       {/* Post Header */}
-      <div className="p-4 flex items-center justify-between border-b border-gray-100">
-        <div className="flex items-center space-x-3">
-          <div className="bg-gradient-to-br from-purple-500 to-indigo-600 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">
-            <User className="w-5 h-5" />
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-800">
-              {post.userId === currentUserId ? 'You' : `User ${post.userId}`}
-            </h4>
-            <p className="text-xs text-gray-500">
-              {formatDate(post.createdAt)}
-            </p>
-          </div>
+    <div className="p-4 flex items-center justify-between border-b border-gray-100">
+      <div className="flex items-center space-x-3">
+        <div className="bg-gradient-to-br from-purple-500 to-indigo-600 w-10 h-10 rounded-full flex items-center justify-center text-white font-bold">
+          <User className="w-5 h-5" />
+        </div>
+        <div>
+          <h4 className="font-semibold text-gray-800">
+            {post.userId === currentUserId ? 'You' : `@${post.userId}`}
+          </h4>
+          <p className="text-xs text-gray-500">
+            {formatDateTime(post.createdAt)}
+          </p>
         </div>
       </div>
+    </div>
 
       {/* Post Media */}
       {renderMediaGallery()}

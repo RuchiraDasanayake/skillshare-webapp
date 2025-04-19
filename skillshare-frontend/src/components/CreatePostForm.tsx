@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { Play, X } from 'lucide-react';
 import { CURRENT_USER_ID, postApi } from '../api/postApi';
 import { storage, ref, uploadBytesResumable, getDownloadURL } from '../config/firebaseConfig';
+import OpenAI from "openai";
+import { GoogleGenAI } from "@google/genai";
 
 const MAX_MEDIA_FILES = 3;
 const MAX_FILE_SIZE_MB = 10;
@@ -52,6 +54,52 @@ const getVideoDuration = (file: File): Promise<number> => {
     video.src = URL.createObjectURL(file);
   });
 };
+
+// const openai = new OpenAI({
+//   apiKey: "KEY",
+//   dangerouslyAllowBrowser: true,
+// });
+
+// const generateDescription = async (title: string, category: string) => {
+//   try {
+//     const completion = await openai.chat.completions.create({
+//       model: "gpt-4o-mini",
+//       messages: [
+//         {
+//           role: "user",
+//           content: `Write a short engaging description for a skill post titled "${title}" under the "${category}" category.`,
+//         },
+//       ],
+//     });
+
+//     return completion.choices[0]?.message?.content || "";
+//   } catch (error) {
+//     console.error("Error generating description:", error);
+//     return "";
+//   }
+// };
+
+// const ai = new GoogleGenAI({
+//   apiKey: "KEY"
+// });
+
+// const generateDescription = async (title: string, category: string): Promise<string> => {
+//   try {
+//     const prompt = `Write a short and engaging description for a skill post titled "${title}" under the "${category}" category.`;
+
+//     const result = await ai.models.generateContent({
+//       model: "gemini-2.0-flash",
+//       contents: prompt,
+//     });
+
+//     return result.text ?? "Failed to generate description.";
+//   } catch (error) {
+//     console.error("Error generating description:", error);
+//     return "Failed to generate description.";
+//   }
+// };
+
+
 
 const CreatePostForm: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
@@ -336,21 +384,33 @@ const CreatePostForm: React.FC = () => {
 
             {/* Description Field */}
             <div className="mb-6">
-              <label
-                htmlFor="description"
-                className="block text-sm font-medium text-purple-800 mb-2"
-              >
-                Skill Description
+              <label htmlFor="description" className="block text-sm font-medium text-purple-800 mb-2">
+                Description
               </label>
               <textarea
                 id="description"
                 name="description"
-                rows={5}
                 value={formData.description}
                 onChange={handleInputChange}
-                placeholder="Tell us more about your skill!"
-                className="w-full px-4 py-3 rounded-xl border border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                rows={4}
+                placeholder="Briefly describe what you'll be sharing..."
+                className="w-full px-4 py-3 rounded-xl border border-purple-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 resize-none"
               />
+              {/* <button
+                type="button"
+                className="mt-2 text-sm text-purple-600 underline hover:text-purple-800"
+                onClick={async () => {
+                  if (!formData.title || !formData.skillCategory) {
+                    setError("Title and category are required to generate a description.");
+                    return;
+                  }
+                  setError(null);
+                  const generated = await generateDescription(formData.title, formData.skillCategory);
+                  setFormData(prev => ({ ...prev, description: generated }));
+                }}
+              >
+                Generate Description with AI
+              </button> */}
             </div>
 
             {/* Media Files */}
