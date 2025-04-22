@@ -50,7 +50,7 @@ const Home: React.FC = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-purple-900/40 via-purple-800/30 to-purple-900/20" />
       </div>
       
-      {/* Floating particles */}
+      {/* Floating particles - Faster animation */}
       {[...Array(15)].map((_, i) => (
         <motion.div
           key={i}
@@ -68,7 +68,7 @@ const Home: React.FC = () => {
             opacity: [0, Math.random() * 0.3 + 0.1, 0],
           }}
           transition={{
-            duration: Math.random() * 20 + 10,
+            duration: Math.random() * 10 + 5, // Faster duration
             repeat: Infinity,
             repeatType: "reverse",
             ease: "easeInOut"
@@ -85,7 +85,7 @@ const Home: React.FC = () => {
         className="min-h-screen flex flex-col justify-center items-center text-center px-8 relative"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 1.5 }}
+        transition={{ duration: 0.8 }} // Faster fade-in
       >
         <div className="absolute inset-0 -z-10 overflow-hidden">
           <motion.div 
@@ -95,7 +95,7 @@ const Home: React.FC = () => {
               opacity: [0.1, 0.2, 0.1]
             }}
             transition={{
-              duration: 8,
+              duration: 5, // Faster pulse
               repeat: Infinity,
               ease: "easeInOut"
             }}
@@ -107,10 +107,10 @@ const Home: React.FC = () => {
               opacity: [0.1, 0.15, 0.1]
             }}
             transition={{
-              duration: 10,
+              duration: 6, // Faster pulse
               repeat: Infinity,
               ease: "easeInOut",
-              delay: 2
+              delay: 1
             }}
           />
         </div>
@@ -118,7 +118,7 @@ const Home: React.FC = () => {
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3, duration: 1 }}
+          transition={{ delay: 0.2, duration: 0.6 }} // Faster
           className="mb-8"
         >
           <span className="px-4 py-2 bg-purple-100/50 text-purple-600 rounded-full text-sm font-medium backdrop-blur-sm border border-purple-200/30">
@@ -132,9 +132,9 @@ const Home: React.FC = () => {
           animate={{ y: 0, opacity: 1 }}
           transition={{ 
             type: "spring", 
-            stiffness: 60,
-            damping: 12,
-            delay: 0.5
+            stiffness: 80, // Snappier spring
+            damping: 10,
+            delay: 0.3 // Less delay
           }}
         >
           <span className="bg-gradient-to-r from-purple-300 via-purple-100 to-purple-400 bg-clip-text text-transparent">
@@ -146,7 +146,7 @@ const Home: React.FC = () => {
           className="text-xl md:text-2xl max-w-3xl mx-auto mb-12 text-purple-100 leading-relaxed"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 1.5 }}
+          transition={{ delay: 0.6, duration: 0.8 }} // Faster
         >
           The <span className="font-semibold text-white">premier platform</span> for meaningful knowledge exchange among discerning professionals
         </motion.p>
@@ -155,16 +155,16 @@ const Home: React.FC = () => {
           className="flex flex-col sm:flex-row gap-4 mb-16 w-full sm:w-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.2, duration: 0.8 }}
+          transition={{ delay: 0.8, duration: 0.5 }} // Faster
         >
           <Link 
             to="/create" 
-            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-400 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-500 flex items-center justify-center gap-2 hover:-translate-y-1 group border border-purple-300/30"
+            className="px-8 py-4 bg-gradient-to-r from-purple-600 to-purple-400 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 hover:-translate-y-1 group border border-purple-300/30"
           >
             <motion.span 
               initial={{ x: 0 }}
               whileHover={{ x: 5 }}
-              transition={{ type: "spring", stiffness: 300 }}
+              transition={{ type: "spring", stiffness: 400 }} // Snappier
               className="flex items-center gap-2"
             >
               Share Expertise <span className="text-xl">→</span>
@@ -172,11 +172,11 @@ const Home: React.FC = () => {
           </Link>
           <Link 
             to="/all-posts" 
-            className="px-8 py-4 bg-white/90 text-purple-600 font-semibold rounded-xl border border-purple-200 shadow-md hover:shadow-lg transition-all duration-500 flex items-center justify-center gap-2 hover:-translate-y-1 group backdrop-blur-sm"
+            className="px-8 py-4 bg-white/90 text-purple-600 font-semibold rounded-xl border border-purple-200 shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2 hover:-translate-y-1 group backdrop-blur-sm"
           >
             <motion.span
               whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
+              transition={{ type: "spring", stiffness: 400 }} // Snappier
             >
               Explore Skills <span className="text-xl">⌘</span>
             </motion.span>
@@ -187,7 +187,7 @@ const Home: React.FC = () => {
           className="absolute bottom-12 text-2xl text-purple-200"
           animate={{ y: [0, 10, 0] }}
           transition={{ 
-            duration: 2,
+            duration: 1.5, // Faster bounce
             repeat: Infinity,
             ease: "easeInOut"
           }}
@@ -204,7 +204,7 @@ const Home: React.FC = () => {
           className="text-center mb-16 max-w-3xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6 }} // Faster
           viewport={{ once: true, margin: "-100px" }}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
@@ -219,13 +219,13 @@ const Home: React.FC = () => {
           {features.map((feature, index) => (
             <motion.div 
               key={index}
-              className={`p-8 ${feature.bg} rounded-2xl shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-2 border border-purple-200/30`}
+              className={`p-8 ${feature.bg} rounded-2xl shadow-md transition-all duration-300 hover:shadow-xl hover:-translate-y-2 border border-purple-200/30`}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ 
-                delay: index * 0.2, 
+                delay: index * 0.1, // Less staggered delay
                 type: "spring",
-                stiffness: 80
+                stiffness: 100 // Snappier
               }}
               viewport={{ once: true, margin: "-50px" }}
               whileHover={{ scale: 1.03 }}
@@ -249,7 +249,7 @@ const Home: React.FC = () => {
           className="text-center mb-16 max-w-3xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: 0.6 }} // Faster
           viewport={{ once: true }}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white">
@@ -268,9 +268,9 @@ const Home: React.FC = () => {
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ 
-                delay: index * 0.3, 
+                delay: index * 0.2, // Less staggered delay
                 type: "spring",
-                stiffness: 80
+                stiffness: 100 // Snappier
               }}
               viewport={{ once: true }}
               whileHover={{ y: -5 }}
@@ -306,7 +306,7 @@ const Home: React.FC = () => {
           className="max-w-4xl mx-auto relative"
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1 }}
+          transition={{ duration: 0.6 }} // Faster
           viewport={{ once: true }}
         >
           <motion.div
@@ -314,7 +314,7 @@ const Home: React.FC = () => {
               rotate: [0, 5, -5, 0],
             }}
             transition={{
-              duration: 8,
+              duration: 5, // Faster
               repeat: Infinity,
               ease: "easeInOut"
             }}
@@ -325,10 +325,10 @@ const Home: React.FC = () => {
               rotate: [0, -8, 8, 0],
             }}
             transition={{
-              duration: 10,
+              duration: 6, // Faster
               repeat: Infinity,
               ease: "easeInOut",
-              delay: 2
+              delay: 1
             }}
             className="absolute -bottom-20 -right-20 w-60 h-60 rounded-full bg-purple-400/20 blur-xl"
           />
@@ -339,7 +339,7 @@ const Home: React.FC = () => {
                 backgroundPosition: ['0%', '100%'],
               }}
               transition={{
-                duration: 8,
+                duration: 5, // Faster gradient animation
                 repeat: Infinity,
                 repeatType: "reverse",
                 ease: "linear"
@@ -354,16 +354,16 @@ const Home: React.FC = () => {
           </p>
           <Link 
             to="/signup" 
-            className="inline-block px-10 py-5 bg-white text-purple-700 font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 group relative overflow-hidden"
+            className="inline-block px-10 py-5 bg-white text-purple-700 font-bold rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 group relative overflow-hidden"
           >
             <span className="relative z-10 flex items-center gap-2">
-              Begin Your Journey <span className="text-xl transition-transform duration-300 group-hover:translate-x-1">→</span>
+              Begin Your Journey <span className="text-xl transition-transform duration-200 group-hover:translate-x-1">→</span>
             </span>
             <motion.span
-              className="absolute inset-0 bg-gradient-to-r from-purple-100 to-white z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+              className="absolute inset-0 bg-gradient-to-r from-purple-100 to-white z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
               initial={{ x: "-100%" }}
               whileHover={{ x: "0%" }}
-              transition={{ type: "spring", stiffness: 100 }}
+              transition={{ type: "spring", stiffness: 200 }} // Snappier
             />
           </Link>
         </motion.div>
