@@ -1,5 +1,8 @@
 package com.skillshare.app.user.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Data;
 
 
@@ -22,5 +25,8 @@ public class UserDto {
     private boolean req_user;
     private boolean login_with_google;
 
-
+    private List<UserDto> followers = new ArrayList<>();
+    private List<UserDto> followings = new ArrayList<>();
+    private boolean followed;
+    private boolean isVerified;
 }

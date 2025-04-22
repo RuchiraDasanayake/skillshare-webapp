@@ -1,10 +1,15 @@
 package com.skillshare.app.posts.util;
 
-import com.skillshare.app.posts.dto.*;
-import com.skillshare.app.posts.model.*;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Component;
 
-import java.util.stream.Collectors;
+import com.skillshare.app.posts.dto.CommentDto;
+import com.skillshare.app.posts.dto.LikeDto;
+import com.skillshare.app.posts.dto.SkillPostDto;
+import com.skillshare.app.posts.model.Comment;
+import com.skillshare.app.posts.model.Like;
+import com.skillshare.app.posts.model.SkillPost;
 
 @Component
 public class EntityDtoMapper {

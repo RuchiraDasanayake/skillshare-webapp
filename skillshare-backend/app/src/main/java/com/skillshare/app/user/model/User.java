@@ -22,30 +22,31 @@ import lombok.Data;
 @Entity
 @Table(name = "users")
 public class User {
+
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
 
     @JsonIgnore
-    @OneToMany //(mappedBy = "user_id", cascade = CascadeType.ALL)
+    @OneToMany
     private List<SkillPost> twits = new ArrayList<>();
 
     private String fullName;
     private String email;
     private boolean login_with_google;
-    private String password; 
+    private String password;
     private String birthDate;
-    
+    private String location; 
+    private String bio;      
+    private String website;  
+    private String image;    
+    private String background; 
 
-
-
-
-    @OneToMany  //(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Like> likes = new ArrayList<>(); 
+    @OneToMany
+    private List<Like> likes = new ArrayList<>();
 
     @Embedded
     private Varification verification;
-
 
     @JsonIgnore
     @ManyToMany
@@ -54,6 +55,5 @@ public class User {
     @JsonIgnore
     @ManyToMany
     private List<User> followings = new ArrayList<>();
-
 
 }
