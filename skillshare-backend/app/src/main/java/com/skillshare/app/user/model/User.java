@@ -31,6 +31,7 @@ public class User {
     @OneToMany
     private List<SkillPost> twits = new ArrayList<>();
 
+    private String userId;
     private String fullName;
     private String email;
     private boolean login_with_google;

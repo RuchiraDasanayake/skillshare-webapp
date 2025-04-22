@@ -11,7 +11,7 @@ import lombok.Data;
 public class UserDto {
    
     private Long id;
-
+    private String userId;
     private String fullName;
     private String location;
     private String website;
