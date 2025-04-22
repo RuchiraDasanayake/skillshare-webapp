@@ -119,7 +119,7 @@ const MyPosts: React.FC = () => {
   }, [inView, loading, hasMore, loadPosts, page]);
 
   const handleCreatePost = () => {
-    navigate("/posts/new");
+    navigate("/create");
   };
 
   const handleEditPost = (post: any) => {
