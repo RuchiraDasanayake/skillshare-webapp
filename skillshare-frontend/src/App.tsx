@@ -1,37 +1,30 @@
-import React from 'react'
-import { Routes, Route } from "react-router-dom";
-import PostList from "./components/PostList";
-import CreatePostForm from "./components/CreatePostForm";
-import MyPosts from "./components/MyPosts";
-import Home from "./pages/HomePage";
-import { PostProvider } from "./context/PostContext";
-import ProfileHome from "./components/ProfileHome";
-import Navbar from "./components/Navigation/NavBar"; 
-import MainPage from "./components/Mainpage"
-import Signin from "./components/auth/Signin";
-import Signup from "./components/auth/Signup";
+// src/App.tsx
+import React from 'react';
+import { Routes, Route } from 'react-router-dom';
 
+import AuthPage from './components/AuthPage';
+import Home from './pages/HomePage';
+import ProfileHome from './components/ProfileHome';
+import CreatePostForm from './components/CreatePostForm';
+import MyPosts from './components/MyPosts';
+import PostList from './components/PostList';
+import Navbar from './components/Navigation/NavBar';
+import MainPage from './components/Mainpage';
 
 const App: React.FC = () => {
-
-
-
   return (
-    <PostProvider>
+    <>
       <Navbar />
-      <div className="pt-20">
-        <Routes>
-        <Route path="/" element={<MainPage />} />
-        <Route path="/signin" element={<Signin />} />
-        <Route path="/signup" element={<Signup />} />
+      <Routes>
+        <Route path="/" element={<AuthPage />} />
+        <Route path="/main" element={<MainPage />} />
         <Route path="/home" element={<Home />} />
-        <Route path="/all-posts" element={<PostList />} />
-        <Route path="/create" element={<CreatePostForm />} />
-        <Route path="/my-posts" element={<MyPosts />} />
         <Route path="/profile" element={<ProfileHome />} />
-        </Routes>
-      </div>
-    </PostProvider>
+        <Route path="/create" element={<CreatePostForm />} />
+        <Route path="/myposts" element={<MyPosts />} />
+        <Route path="/posts" element={<PostList />} />
+      </Routes>
+    </>
   );
 };
 
