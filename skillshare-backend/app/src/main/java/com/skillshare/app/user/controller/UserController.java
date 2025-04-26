@@ -53,7 +53,6 @@ public class UserController {
         userDto.setReq_user(UserUtil.isReqUser(reqUser, user));
         userDto.setFollowed(UserUtil.isFollowedByReqUser(reqUser, user));
 
-        
         return new ResponseEntity<>(userDto, HttpStatus.ACCEPTED);
     }
 

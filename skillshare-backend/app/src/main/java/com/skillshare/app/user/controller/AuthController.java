@@ -26,7 +26,7 @@ import com.skillshare.app.user.service.CustomUserDetailsServiceImplementation;
 
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/auth") 
 
 public class AuthController {
 

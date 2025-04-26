@@ -5,6 +5,7 @@ import java.util.Collections;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -41,24 +42,26 @@ public class CorsConfig {
     @Configuration
     public class SecurityConfig {
 
-        @Bean
-        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-            http
-                .sessionManagement(session -> session
-                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/**").authenticated()
-                    .anyRequest().permitAll()
-                ).
-                addFilterBefore(new jwtTokenValidator(), BasicAuthenticationFilter.class)
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .httpBasic(httpBasic -> {})  // optional if you're using JWT
-                .formLogin(form -> form.disable());
-    
-            return http.build();
-        }
+      @Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .sessionManagement(session -> session
+            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight requests
+            .requestMatchers("/api/auth/signup", "/api/auth/signin").permitAll() // Allow signup/signin
+            .requestMatchers("/api/**").authenticated() // Require auth for other API routes
+            .anyRequest().permitAll()
+        )
+        .addFilterBefore(new jwtTokenValidator(), BasicAuthenticationFilter.class)
+        .csrf(csrf -> csrf.disable())
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .httpBasic(httpBasic -> httpBasic.disable())
+        .formLogin(form -> form.disable());
+
+    return http.build();
+}
     
         @Bean
         public CorsConfigurationSource corsConfigurationSource() {

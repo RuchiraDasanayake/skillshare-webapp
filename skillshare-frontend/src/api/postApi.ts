@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 const BASE_URL = 'http://localhost:8080/api/posts';
 
 export interface SkillPostDto {
@@ -72,6 +73,69 @@ function handleError(error: unknown): never {
   }
   throw new Error('An unexpected error occurred');
 }
+
+export const loginUser = (loginData) => async (dispatch) => {
+  try {
+    const response = await axios.post("http://localhost:8080/api/auth/signin", loginData);
+
+    dispatch({ type: "LOGIN_SUCCESS", payload: response.data });
+
+    return response.data;
+  } catch (error) {
+    dispatch({ type: "LOGIN_FAILURE", payload: error });
+
+    // Ensure the error bubbles up to onSubmit
+    throw error;
+  }
+};
+
+
+
+
+export const registernUser = (RegisterData: unknown) => async (dispatch: any)=> {
+  try {
+    const {data} = await axios.post(`http://localhost:8080/api//auth/signup`, RegisterData)
+    console.log("register data", data)
+    if (data.jwt){
+      localStorage.setItem("token", data.jwt);
+    }
+      dispatch({
+        type: "REGISTER_USER_SUCCESS",
+        payload: data.jwt,
+      });
+    
+  } catch (error) {
+    console.error("Error logging in:", error);
+    dispatch({
+      type: "REGISTER_USER_FAILURE",
+      payload: axios.isAxiosError(error) ? error.message : 'An unexpected error occurred'
+    });
+  }
+}
+
+export const getUserProfile = (jwt: any) => async (dispatch: any) => {
+  try {
+    const {data} = await axios.get(`http://localhost:8080/api//users/profile`, {
+      headers: {
+        "Authorization": `Bearer ${jwt}`
+      }
+    })
+    if (data.jwt){
+      localStorage.setItem("token", data.jwt);
+    }
+      dispatch({
+        type: "GET_USER_PROFILE_SUCCESS",
+        payload: data,
+      });
+  } catch (error) {
+    console.error("Error logging in:", error);
+    dispatch({
+      type: "GET_USER_PROFILE_FAILURE",
+      payload: axios.isAxiosError(error) ? error.message : 'An unexpected error occurred'
+    });
+  }
+}
+
 
 // Post Operations
 export const postApi = {
