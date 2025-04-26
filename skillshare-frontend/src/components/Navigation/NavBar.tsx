@@ -1,16 +1,26 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const Navbar: React.FC = () => {
   const location = useLocation();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    setIsLoggedIn(!!userId);
+  }, []);
 
   const navItems = [
     { path: "/", icon: "🏠", text: "Home" },
     { path: "/all-posts", icon: "📜", text: "Browse" },
     { path: "/create", icon: "✍️", text: "Create" },
     { path: "/my-posts", icon: "📚", text: "My Posts" },
-    { path: "/profile", icon: "👤", text: "Profile" },
+    { path: "/learning-plans", icon: "🎯", text: "Learning Plans" },
+    ...(isLoggedIn 
+      ? [{ path: "/profile", icon: "👤", text: "Profile" }]
+      : [{ path: "/login", icon: "🔑", text: "Login" }]
+    ),
   ];
 
   return (
@@ -21,7 +31,6 @@ const Navbar: React.FC = () => {
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
     >
       <div className="container mx-auto flex justify-between items-center py-4 px-6">
-        {/* Logo */}
         <Link
           to="/"
           className="text-2xl font-bold flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition"
@@ -30,7 +39,6 @@ const Navbar: React.FC = () => {
           <span>SkillZen</span>
         </Link>
 
-        {/* Navigation Links */}
         <ul className="flex space-x-4">
           {navItems.map(({ path, icon, text }) => {
             const isActive = location.pathname === path;
