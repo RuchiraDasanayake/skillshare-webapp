@@ -10,14 +10,8 @@ const MAX_FILE_SIZE_MB = 10;
 const MAX_VIDEO_DURATION = 30;
 const DEFAULT_IMAGE_URL = "gs://skillshare-db.firebasestorage.app/default.png";
 const SKILL_CATEGORIES = [
-  'Design',
-  'Development',
-  'Business',
-  'Photography',
-  'Music',
-  'Marketing',
-  'Lifestyle',
-  'Writing'
+  'Design', 'Development', 'Business', 'Photography',
+  'Music', 'Marketing', 'Lifestyle', 'Writing'
 ] as const;
 
 type SkillCategory = typeof SKILL_CATEGORIES[number];
@@ -36,20 +30,16 @@ interface FormData {
   skillCategory: SkillCategory | '';
 }
 
-// Utility to check if file is a video
 const isVideoFile = (file: File) => file.type.startsWith('video/');
 
-// Utility to get video duration
 const getVideoDuration = (file: File): Promise<number> => {
   return new Promise((resolve) => {
     const video = document.createElement('video');
     video.preload = 'metadata';
-
     video.onloadedmetadata = () => {
       window.URL.revokeObjectURL(video.src);
       resolve(video.duration);
     };
-
     video.src = URL.createObjectURL(file);
   });
 };
@@ -61,13 +51,12 @@ const openai = new OpenAI({
 
 const generateDescription = async (title: string, category: string) => {
   try {
-    console.log("Generating description with OpenAI...");
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
         {
           role: "user",
-          content: `Write a short engaging description for a skill post titled "${title}" under the "${category}" category.`,
+          content: `Write a short engaging description for a skill post titled "${title}" under the "${category}" category to be shared on a skill sharing and learning platform`,
         },
       ],
     });
@@ -88,105 +77,15 @@ const CreatePostForm: React.FC = () => {
 
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    try {
-      // Validate required fields
-      if (!formData.title.trim()) throw new Error('Title is required');
-      if (!formData.skillCategory) throw new Error('Skill category is required');
-      if (mediaFiles.length > MAX_MEDIA_FILES) throw new Error(`Maximum ${MAX_MEDIA_FILES} files allowed`);
-
-      // Check file sizes and video durations
-      for (const media of mediaFiles) {
-        if (media.file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-          throw new Error(`File ${media.file.name} exceeds ${MAX_FILE_SIZE_MB}MB limit`);
-        }
-        if (media.isVideo && media.duration && media.duration > MAX_VIDEO_DURATION) {
-          throw new Error(`Video ${media.file.name} exceeds ${MAX_VIDEO_DURATION} second limit`);
-        }
-      }
-
-      setIsSubmitting(true);
-
-      let mediaUrls: string[] = [];
-
-      // Only upload files if they exist, otherwise use default URL
-      if (mediaFiles.length > 0) {
-        mediaUrls = await Promise.all(
-          mediaFiles.map(async (media, index) => {
-            try {
-              const postId = "temp_post_id"; // Replace with actual post ID when available
-              const storageRef = ref(storage, `posts/${postId}/${media.file.name}`);
-              const uploadTask = uploadBytesResumable(storageRef, media.file);
-
-              await new Promise((resolve, reject) => {
-                uploadTask.on(
-                  'state_changed',
-                  (snapshot) => {
-                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                    setMediaFiles(prev => prev.map((file, i) =>
-                      i === index ? { ...file, uploadProgress: progress } : file
-                    ));
-                  },
-                  (error) => reject(error),
-                  () => resolve(uploadTask)
-                );
-              });
-
-              const fileUrl = await getDownloadURL(uploadTask.snapshot.ref);
-              return fileUrl;
-            } catch (err) {
-              console.error('Error uploading file:', err);
-              throw new Error(`Failed to upload ${media.file.name}`);
-            }
-          })
-        );
-      } else {
-        // Use the default image URL
-        mediaUrls = [await getDownloadURL(ref(storage, DEFAULT_IMAGE_URL))];
-      }
-
-      // Create post data
-      const postData = {
-        ...formData,
-        mediaUrls,
-        userId: CURRENT_USER_ID
-      };
-
-      // Call API to create post
-      await postApi.create(postData);
-
-      // Reset form
-      setFormData({
-        title: '',
-        description: '',
-        skillCategory: '',
-      });
-      setMediaFiles([]);
-
-      // Show success
-      alert('Post created successfully!');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create post');
-      console.error('Error creating post:', err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -229,9 +128,7 @@ const CreatePostForm: React.FC = () => {
     setIsDragging(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
+  const handleDragLeave = () => setIsDragging(false);
 
   const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
@@ -276,51 +173,89 @@ const CreatePostForm: React.FC = () => {
     setMediaFiles(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    try {
+      if (!formData.title.trim()) throw new Error('Title is required');
+      if (!formData.skillCategory) throw new Error('Skill category is required');
+      if (mediaFiles.length > MAX_MEDIA_FILES) throw new Error(`Maximum ${MAX_MEDIA_FILES} files allowed`);
+
+      for (const media of mediaFiles) {
+        if (media.file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+          throw new Error(`File ${media.file.name} exceeds ${MAX_FILE_SIZE_MB}MB limit`);
+        }
+        if (media.isVideo && media.duration && media.duration > MAX_VIDEO_DURATION) {
+          throw new Error(`Video ${media.file.name} exceeds ${MAX_VIDEO_DURATION} second limit`);
+        }
+      }
+
+      setIsSubmitting(true);
+
+      let mediaUrls: string[] = [];
+
+      if (mediaFiles.length > 0) {
+        mediaUrls = await Promise.all(
+          mediaFiles.map(async (media, index) => {
+            const storageRef = ref(storage, `skill-post/${media.file.name}`);
+            const uploadTask = uploadBytesResumable(storageRef, media.file);
+
+            await new Promise((resolve, reject) => {
+              uploadTask.on(
+                'state_changed',
+                (snapshot) => {
+                  const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                  setMediaFiles(prev => prev.map((file, i) =>
+                    i === index ? { ...file, uploadProgress: progress } : file
+                  ));
+                },
+                reject,
+                () => resolve(uploadTask)
+              );
+            });
+
+            return await getDownloadURL(uploadTask.snapshot.ref);
+          })
+        );
+      } else {
+        mediaUrls = [await getDownloadURL(ref(storage, DEFAULT_IMAGE_URL))];
+      }
+
+      await postApi.create({
+        ...formData,
+        mediaUrls,
+        userId: CURRENT_USER_ID
+      });
+
+      setFormData({ title: '', description: '', skillCategory: '' });
+      setMediaFiles([]);
+      alert('Post created successfully!');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create post');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <motion.div
-      className="min-h-screen bg-gradient-to-b from-purple-50 to-white py-12 px-4 sm:px-6 lg:px-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <motion.div className="min-h-screen bg-gradient-to-b from-purple-50 to-white py-12 px-4 sm:px-6 lg:px-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
       <div className="max-w-3xl mx-auto">
-        <motion.div
-          initial={{ y: -20 }}
-          animate={{ y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="text-center mb-10"
-        >
-          <h2 className="text-3xl font-extrabold text-purple-900 mb-2">
-            Share Your Skill
-          </h2>
-          <p className="text-purple-600">
-            Posting as <span className="font-semibold">{CURRENT_USER_ID}</span>
-          </p>
+        <motion.div initial={{ y: -20 }} animate={{ y: 0 }} className="text-center mb-10">
+          <h2 className="text-3xl font-extrabold text-purple-900 mb-2">Share Your Skill</h2>
+          <p className="text-purple-600">Posting as <span className="font-semibold">{CURRENT_USER_ID}</span></p>
         </motion.div>
 
-        <motion.div
-          initial={{ scale: 0.98 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.3 }}
-          className="bg-white rounded-2xl shadow-xl overflow-hidden"
-        >
+        <motion.div initial={{ scale: 0.98 }} animate={{ scale: 1 }} transition={{ duration: 0.3 }} className="bg-white rounded-2xl shadow-xl overflow-hidden">
           {error && (
-            <motion.div
-              className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0 }}
-            >
+            <motion.div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
               <p>{error}</p>
             </motion.div>
           )}
 
           <form onSubmit={handleSubmit} className="p-6 sm:p-8">
-            {/* Title Field */}
             <div className="mb-6">
-              <label htmlFor="title" className="block text-sm font-medium text-purple-800 mb-2">
-                Skill Title *
-              </label>
+              <label htmlFor="title" className="block text-sm font-medium text-purple-800 mb-2">Skill Title *</label>
               <input
                 id="title"
                 name="title"
@@ -333,38 +268,25 @@ const CreatePostForm: React.FC = () => {
               />
             </div>
 
-            {/* Skill Category Field */}
             <div className="mb-6">
-              <label
-                htmlFor="skillCategory"
-                className="block text-sm font-medium text-purple-800 mb-2"
+              <label htmlFor="skillCategory" className="block text-sm font-medium text-purple-800 mb-2">Skill Category *</label>
+              <select
+                id="skillCategory"
+                name="skillCategory"
+                value={formData.skillCategory}
+                onChange={handleInputChange}
+                className="w-full px-5 py-3 pr-10 rounded-lg border-2 border-purple-300 shadow-md focus:ring-2 focus:ring-purple-600 focus:border-purple-600 transition-all duration-200 bg-gradient-to-r from-purple-100 to-purple-50"
+                required
               >
-                Skill Category *
-              </label>
-              <div className="relative">
-                <select
-                  id="skillCategory"
-                  name="skillCategory"
-                  value={formData.skillCategory}
-                  onChange={handleInputChange}
-                  className="w-full px-5 py-3 pr-10 rounded-lg border-2 border-purple-300 shadow-md focus:ring-2 focus:ring-purple-600 focus:border-purple-600 transition-all duration-200 bg-gradient-to-r from-purple-100 to-purple-50"
-                  required
-                >
-                  <option value="">Select a category</option>
-                  {SKILL_CATEGORIES.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <option value="">Select a category</option>
+                {SKILL_CATEGORIES.map((category) => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Description Field */}
             <div className="mb-8">
-              <label htmlFor="description" className="block text-base font-semibold text-purple-700 mb-3">
-                📝 Description
-              </label>
+              <label htmlFor="description" className="block text-base font-semibold text-purple-700 mb-3">📝 Description</label>
               <div className="relative">
                 <textarea
                   id="description"
@@ -377,26 +299,38 @@ const CreatePostForm: React.FC = () => {
                 />
                 <button
                   type="button"
-                  className="absolute bottom-4 right-4 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  className="absolute bottom-4 right-4 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg transition-all duration-300 hover:scale-105 hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isGeneratingAI}
                   onClick={async () => {
                     if (!formData.title || !formData.skillCategory) {
                       setError("Title and category are required to generate a description.");
                       return;
                     }
                     setError(null);
+                    setIsGeneratingAI(true);
                     const generated = await generateDescription(formData.title, formData.skillCategory);
                     setFormData(prev => ({ ...prev, description: generated }));
+                    setIsGeneratingAI(false);
                   }}
                 >
-                  ✨ Generate with AI
+                  {isGeneratingAI ? (
+                    <span className="flex items-center gap-2">
+                      <svg className="animate-spin h-4 w-4 text-white" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                      </svg>
+                      Generating...
+                    </span>
+                  ) : (
+                    <>✨ Generate with AI</>
+                  )}
                 </button>
               </div>
             </div>
 
             {/* Media Files */}
             <div
-              className={`mb-6 p-4 border-2 border-dashed rounded-xl ${isDragging ? 'border-purple-500' : 'border-purple-300'
-                }`}
+              className={`mb-6 p-4 border-2 border-dashed rounded-xl ${isDragging ? 'border-purple-500' : 'border-purple-300'}`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -451,7 +385,7 @@ const CreatePostForm: React.FC = () => {
                         className="w-full h-48 object-cover rounded-xl"
                       />
                     )}
-                    {media.uploadProgress && (
+                    {media.uploadProgress !== undefined && (
                       <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50">
                         <div
                           className="h-1 bg-purple-500 transition-all duration-300"
@@ -480,8 +414,19 @@ const CreatePostForm: React.FC = () => {
               className="w-full bg-purple-600 text-white py-3 rounded-xl shadow-md hover:bg-purple-700 focus:outline-none disabled:bg-gray-400 transition-all duration-200"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Creating post...' : 'Share Post'}
+              {isSubmitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                  Creating Post...
+                </span>
+              ) : (
+                'Share Post'
+              )}
             </button>
+
           </form>
         </motion.div>
       </div>
