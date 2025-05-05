@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { postApi, CURRENT_USER_ID } from "../api/postApi";
 import PostCard from "./PostCard";
-import { Loader2, AlertCircle, Plus, Rocket, Edit, Trash2, MoreVertical, X, Search, Filter } from "lucide-react";
+import { Loader2, AlertCircle, Plus, Rocket, Edit, Trash2, MoreVertical, X, Search } from "lucide-react";
 import { useInView } from "react-intersection-observer";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -19,10 +19,7 @@ const MyPosts: React.FC = () => {
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [showMenuId, setShowMenuId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [categories, setCategories] = useState<string[]>([]);
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "popular">("newest");
-  const [showFilters, setShowFilters] = useState(false);
   const navigate = useNavigate();
 
   // Close dropdown menu when clicking outside
@@ -57,7 +54,7 @@ const MyPosts: React.FC = () => {
         setPosts(prev => [...prev, ...userPosts]);
       }
       
-      // Extract unique categories for filter
+      // Extract unique categories for reference
       if (reset) {
         const uniqueCategories = Array.from(
           new Set(userPosts.map((post: any) => post.skillCategory))
@@ -75,7 +72,7 @@ const MyPosts: React.FC = () => {
     }
   }, []);
 
-  // Apply filters and search
+  // Apply search to name, title, and description
   useEffect(() => {
     let result = [...posts];
     
@@ -83,29 +80,17 @@ const MyPosts: React.FC = () => {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         post => 
+          (post.name && post.name.toLowerCase().includes(query)) || 
           post.title.toLowerCase().includes(query) || 
           post.description.toLowerCase().includes(query)
       );
     }
     
-    if (selectedCategory) {
-      result = result.filter(post => post.skillCategory === selectedCategory);
-    }
-    
-    switch (sortOrder) {
-      case "newest":
-        result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        break;
-      case "oldest":
-        result.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-        break;
-      case "popular":
-        result.sort((a, b) => (b.likes || 0) - (a.likes || 0));
-        break;
-    }
+    // Default sort by newest
+    result.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
     setFilteredPosts(result);
-  }, [posts, searchQuery, selectedCategory, sortOrder]);
+  }, [posts, searchQuery]);
 
   useEffect(() => {
     loadPosts(0, true);
@@ -152,10 +137,8 @@ const MyPosts: React.FC = () => {
     }
   }; 
 
-  const resetFilters = () => {
+  const resetSearch = () => {
     setSearchQuery("");
-    setSelectedCategory("");
-    setSortOrder("newest");
   };
 
   const noPostsFound = filteredPosts.length === 0 && !loading && posts.length > 0;
@@ -187,118 +170,44 @@ const MyPosts: React.FC = () => {
 
       {posts.length > 0 && !loading && (
         <div className="mb-6">
-          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center">
-            <div className="relative flex-grow">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search your posts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-3 w-full rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                aria-label="Search posts"
-              />
-              {searchQuery && (
-                <button
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                  onClick={() => setSearchQuery("")}
-                  aria-label="Clear search"
-                >
-                  <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                </button>
-              )}
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
-            
-            <div className="md:w-auto">
+            <input
+              type="text"
+              placeholder="Search your posts by name, title or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10 py-3 w-full rounded-xl border border-gray-300 shadow-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              aria-label="Search posts"
+            />
+            {searchQuery && (
               <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center justify-center w-full md:w-auto px-4 py-3 bg-white rounded-xl border border-gray-300 shadow-sm hover:bg-gray-50 transition-colors"
-                aria-expanded={showFilters}
-                aria-controls="filter-panel"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={resetSearch}
+                aria-label="Clear search"
               >
-                <Filter className="h-5 w-5 text-gray-500 mr-2" />
-                <span className="text-gray-700">Filters</span>
+                <X className="h-5 w-5 text-gray-400 hover:text-gray-600" />
               </button>
-            </div>
-          </div>
-          
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div
-                id="filter-panel"
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="mt-4 p-4 bg-white rounded-xl border border-gray-200 shadow-sm">
-                  <div className="flex flex-col md:flex-row gap-4 items-start">
-                    <div className="w-full md:w-1/3">
-                      <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-1">
-                        Category
-                      </label>
-                      <select
-                        id="category-filter"
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      >
-                        <option value="">All Categories</option>
-                        {categories.map((category) => (
-                          <option key={category} value={category}>
-                            {category}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <div className="w-full md:w-1/3">
-                      <label htmlFor="sort-order" className="block text-sm font-medium text-gray-700 mb-1">
-                        Sort By
-                      </label>
-                      <select
-                        id="sort-order"
-                        value={sortOrder}
-                        onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "popular")}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                      >
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="popular">Most Popular</option>
-                      </select>
-                    </div>
-                    
-                    <div className="w-full md:w-1/3 md:self-end">
-                      <button
-                        onClick={resetFilters}
-                        className="w-full px-4 py-2 text-purple-600 hover:bg-purple-50 border border-purple-200 rounded-lg transition-colors"
-                      >
-                        Reset Filters
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
             )}
-          </AnimatePresence>
+          </div>
 
-          {(searchQuery || selectedCategory) && (
+          {searchQuery && (
             <div className="mt-4 flex items-center justify-between">
               <div className="text-sm text-gray-500">
                 Showing {filteredPosts.length} {filteredPosts.length === 1 ? 'result' : 'results'}
-                {selectedCategory && <span> in <span className="font-medium">{selectedCategory}</span></span>}
                 {searchQuery && <span> for <span className="font-medium">"{searchQuery}"</span></span>}
               </div>
               
-              <button
-                onClick={resetFilters}
-                className="text-sm text-purple-600 hover:text-purple-800 transition-colors"
-              >
-                Clear All
-              </button>
+              {searchQuery && (
+                <button
+                  onClick={resetSearch}
+                  className="text-sm text-purple-600 hover:text-purple-800 transition-colors"
+                >
+                  Clear Search
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -350,14 +259,14 @@ const MyPosts: React.FC = () => {
           </div>
           <h3 className="text-xl font-semibold text-gray-900">No matching posts found</h3>
           <p className="mt-2 text-gray-500 max-w-md mx-auto">
-            Try adjusting your search or filter criteria to find what you're looking for.
+            Try adjusting your search terms to find what you're looking for.
           </p>
           <div className="mt-6">
             <button
-              onClick={resetFilters}
+              onClick={resetSearch}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
             >
-              Clear All Filters
+              Clear Search
             </button>
           </div>
         </motion.div>
