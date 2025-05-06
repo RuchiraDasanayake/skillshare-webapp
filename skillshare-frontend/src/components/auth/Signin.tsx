@@ -2,10 +2,12 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { setAuthToken } from '../Authentication/auth.tsx';
 
 const Signin: React.FC = () => {
   const [userDetails, setUserDetails] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -15,12 +17,30 @@ const Signin: React.FC = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
+    
     try {
       const response = await axios.post('http://localhost:8080/api/auth/signin', userDetails);
-      localStorage.setItem('jwtToken', response.data.jwt);
-      navigate('/home'); // instead of navigate('/profile')
+      
+      // Check if we received the JWT token
+      if (!response.data.jwt) {
+        throw new Error('No token received');
+      }
+      
+      // Store token using our utility function
+      setAuthToken(response.data.jwt);
+      
+      // Log successful authentication 
+      console.log('Authentication successful, token stored');
+      
+      // Navigate to home
+      navigate('/home');
     } catch (err) {
+      console.error('Login error:', err);
       setError('Invalid email or password');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,8 +64,12 @@ const Signin: React.FC = () => {
         className="w-full border p-2 rounded"
         required
       />
-      <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
-        Login
+      <button 
+        type="submit" 
+        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+        disabled={loading}
+      >
+        {loading ? 'Logging in...' : 'Login'}
       </button>
       {error && <p className="text-red-500 text-sm">{error}</p>}
     </form>
