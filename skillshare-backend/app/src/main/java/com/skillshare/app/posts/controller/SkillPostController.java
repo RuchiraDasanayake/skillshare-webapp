@@ -10,6 +10,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
@@ -35,10 +36,11 @@ public class SkillPostController {
 
     @GetMapping("/all")
     public ResponseEntity<Page<SkillPostDto>> getAllPosts(
-            @PageableDefault(size = 10) Pageable pageable) {
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<SkillPostDto> posts = skillPostService.getAllPosts(pageable);
         return ResponseEntity.ok(posts);
     }
+    
 
     @PutMapping("/{id}")
     public ResponseEntity<SkillPostDto> updatePost(

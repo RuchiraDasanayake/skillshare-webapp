@@ -310,7 +310,6 @@ const PostList: React.FC = () => {
                         >
                           <option value="newest">Newest First</option>
                           <option value="oldest">Oldest First</option>
-                          <option value="popular">Most Popular</option>
                         </select>
                         <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
                           <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
@@ -344,10 +343,12 @@ const PostList: React.FC = () => {
               
               <button
                 onClick={resetFilters}
-                className="text-sm text-purple-600 hover:text-purple-800 transition-colors font-medium"
+                className="inline-flex items-center gap-2 text-sm text-purple-600 hover:text-white hover:bg-purple-600 border border-purple-100 px-4 py-2 rounded-full font-medium transition-all duration-200 shadow-sm hover:shadow-md"
               >
+                <X className="w-4 h-4" />
                 Clear All
               </button>
+
             </div>
           )}
         </motion.div>
