@@ -26,7 +26,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class CorsConfig {
 
     private static final String[] ALLOWED_ORIGINS = {
-        "http://localhost:5173",         
+        "http://localhost:5173",  
+        "http://localhost:5174"        
     };
 
     private static final String API_PATH = "/api/**";
@@ -82,7 +83,8 @@ public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Excepti
 @Bean
 public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
-    config.setAllowedOrigins(Collections.singletonList("http://localhost:5173")); // ← Correct port
+    config.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174"));
+
 
     config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(Collections.singletonList("*"));
