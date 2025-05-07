@@ -1,47 +1,47 @@
-import { Route, Routes } from "react-router-dom";
-import Homesection from "./HomeSection/Homesection";
 import RightPart from "./RightPart/RightPart";
 import Profile from "./Profile/Profile";
-
 const ProfileHome = () => {
     return (
-        <div style={{ width: "100%", padding: "0 16px" }}>
+        <div style={{ width: "100%", padding: "1rem", backgroundColor: "#f3e8ff", minHeight: "100vh" }}>
             <div
                 style={{
                     display: "flex",
                     flexDirection: "row",
                     justifyContent: "space-between",
                     alignItems: "flex-start",
-                    width: "100%",
-                    flexWrap: "nowrap",
-                    gap: "16px",
+                    flexWrap: "wrap",
+                    gap: "1.5rem",
                 }}
             >
-                {/* Middle Content */}
+                {/* Main Content */}
                 <div
                     style={{
-                        width: "100%",
-                        display: "flex",
-                        justifyContent: "center",
-                        maxWidth: "67%",
+                        flex: "1 1 60%",
+                        minWidth: "300px",
+                        maxWidth: "800px",
+                        margin: "0 auto",
+                        backgroundColor: "#fff",
+                        borderRadius: "12px",
+                        padding: "1rem",
+                        boxShadow: "0 4px 12px rgba(128, 90, 213, 0.2)", // Purple shadow
                     }}
                 >
-                    <div style={{ width: "100%" }}>
-                        <Routes>
-                            <Route path="/" element={<Homesection />} />
-                            <Route path="/profile/5" element={<Profile />} />
-                        </Routes>
-                    </div>
+                    <Profile />
                 </div>
 
                 {/* Right Sidebar */}
                 <div
                     style={{
-                        width: "100%",
-                        maxWidth: "20%",
+                        flex: "1 1 25%",
+                        minWidth: "250px",
+                        maxWidth: "300px",
                         position: "sticky",
-                        top: "0",
-                        paddingTop: "16px",
+                        top: "1rem",
+                        alignSelf: "flex-start",
+                        backgroundColor: "#fff",
+                        borderRadius: "12px",
+                        padding: "1rem",
+                        boxShadow: "0 4px 12px rgba(128, 90, 213, 0.2)", // Purple shadow
                     }}
                 >
                     <RightPart />
@@ -50,5 +50,4 @@ const ProfileHome = () => {
         </div>
     );
 };
-
 export default ProfileHome;

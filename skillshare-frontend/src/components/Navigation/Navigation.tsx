@@ -4,10 +4,12 @@ import { Avatar, Button, Menu, MenuItem } from "@mui/material";
 
 import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
 import React from "react";
+import { useSelector } from "react-redux";
 
 
 const Navigation = () => {
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+    const {auth : any} = useSelector(store => store)
     const open = Boolean(anchorEl);
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget);
