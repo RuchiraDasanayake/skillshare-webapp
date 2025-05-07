@@ -1,13 +1,9 @@
-// src/components/auth/Signup.tsx
 import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { Box, Button, Typography, Alert, CircularProgress } from '@mui/material';
 
-interface SignupProps {
-  switchToSignin: () => void;
-}
-
-const Signup: React.FC<SignupProps> = ({ switchToSignin }) => {
+const Signup: React.FC = () => {
   const navigate = useNavigate();
   const [userDetails, setUserDetails] = useState({
     email: '',
@@ -21,10 +17,8 @@ const Signup: React.FC<SignupProps> = ({ switchToSignin }) => {
   const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
-    // Handle redirect after success
     if (success) {
       setRedirecting(true);
-      // Wait a moment to show success message before redirecting
       const timer = setTimeout(() => {
         navigate('/login');
       }, 2000);
@@ -34,42 +28,34 @@ const Signup: React.FC<SignupProps> = ({ switchToSignin }) => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setUserDetails(prev => ({ ...prev, [name]: value }));
+    setUserDetails((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await axios.post('http://localhost:8080/api/auth/signup', userDetails);
-      
-      // Check if the request was successful based on response
+
       if (response.status >= 200 && response.status < 300) {
         setSuccess(true);
-        // Redirection is now handled by useEffect
       } else {
-        // Handle unexpected success status
         setError('Signup completed but with unexpected response. Please try signing in.');
       }
-    } catch (err) {
-      // Handle different error scenarios
+    } catch (err: any) {
       if (axios.isAxiosError(err)) {
-        // Backend returned an error response
         const statusCode = err.response?.status;
         const errorMessage = err.response?.data?.message || 'Unknown error occurred';
-        
+
         if (statusCode === 409) {
           setError('Email already exists. Please use a different email.');
         } else if (statusCode === 400) {
           setError(`Validation error: ${errorMessage}`);
         } else if (statusCode === 500) {
-          // The backend processed the request but encountered an error
-          // Since you mentioned data is being stored, we'll treat this as a partial success
           setSuccess(true);
           setError('Your account was created, but we encountered a system error. Please try signing in.');
-          // Redirection is now handled by useEffect
         } else {
           setError(`Signup failed: ${errorMessage}`);
         }
@@ -81,115 +67,187 @@ const Signup: React.FC<SignupProps> = ({ switchToSignin }) => {
     }
   };
 
-  // Custom circular progress component
-  const CircularProgress = () => (
-    <div className="flex justify-center items-center my-4">
-      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-    </div>
-  );
-
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Create Your Account</h2>
-      
-      {success && (
-        <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">
-          <p className="text-center font-medium">Account created successfully!</p>
-          {redirecting && (
-            <>
-              <p className="text-center">Redirecting to login...</p>
-              <CircularProgress />
-            </>
-          )}
-        </div>
-      )}
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-          <input
-            id="fullName"
-            name="fullName"
-            type="text"
-            placeholder="Enter your full name"
-            value={userDetails.fullName}
-            onChange={handleChange}
-            className="w-full border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="birthDate" className="block text-sm font-medium text-gray-700 mb-1">Birth Date</label>
-          <input
-            id="birthDate"
-            name="birthDate"
-            type="date"
-            value={userDetails.birthDate}
-            onChange={handleChange}
-            className="w-full border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="your@email.com"
-            value={userDetails.email}
-            onChange={handleChange}
-            className="w-full border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500"
-            required
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Create a strong password"
-            value={userDetails.password}
-            onChange={handleChange}
-            className="w-full border border-gray-300 p-2 rounded focus:ring-blue-500 focus:border-blue-500"
-            required
-            minLength={6}
-          />
-          <p className="text-xs text-gray-500 mt-1">Password must be at least 6 characters</p>
-        </div>
-        
-        <button 
-          type="submit" 
-          className={`w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition duration-200 flex justify-center ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-          disabled={loading}
-        >
-          {loading ? 'Creating Account...' : 'Sign Up'}
-        </button>
-        
-        {error && (
-          <div className="p-3 bg-red-100 text-red-700 rounded text-sm">
-            {error}
-          </div>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        p: 2,
+      }}
+    >
+      <Box
+        sx={{
+          bgcolor: 'background.paper',
+          borderRadius: 3,
+          boxShadow: 6,
+          p: 5,
+          maxWidth: 400,
+          width: '100%',
+        }}
+      >
+        <Typography variant="h4" fontWeight="bold" align="center" gutterBottom color="primary">
+          Create Your Account
+        </Typography>
+
+        {success && (
+          <Alert severity="success" sx={{ mb: 3, textAlign: 'center' }}>
+            Account created successfully!
+            {redirecting && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                Redirecting to login...
+              </Typography>
+            )}
+          </Alert>
         )}
-        
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-600">
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
+
+        <form onSubmit={handleSubmit} noValidate>
+          <Box sx={{ mb: 2 }}>
+            <Typography component="label" htmlFor="fullName" sx={{ fontWeight: 'medium', mb: 1, display: 'block' }}>
+              Full Name
+            </Typography>
+            <input
+              id="fullName"
+              name="fullName"
+              type="text"
+              placeholder="Enter your full name"
+              value={userDetails.fullName}
+              onChange={handleChange}
+              required
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: 6,
+                border: '1px solid #cbd5e1',
+                outline: 'none',
+                fontSize: 16,
+                boxSizing: 'border-box',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+              onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
+            />
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <Typography component="label" htmlFor="birthDate" sx={{ fontWeight: 'medium', mb: 1, display: 'block' }}>
+              Birth Date
+            </Typography>
+            <input
+              id="birthDate"
+              name="birthDate"
+              type="date"
+              value={userDetails.birthDate}
+              onChange={handleChange}
+              required
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: 6,
+                border: '1px solid #cbd5e1',
+                outline: 'none',
+                fontSize: 16,
+                boxSizing: 'border-box',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+              onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
+            />
+          </Box>
+
+          <Box sx={{ mb: 2 }}>
+            <Typography component="label" htmlFor="email" sx={{ fontWeight: 'medium', mb: 1, display: 'block' }}>
+              Email
+            </Typography>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="your@email.com"
+              value={userDetails.email}
+              onChange={handleChange}
+              required
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: 6,
+                border: '1px solid #cbd5e1',
+                outline: 'none',
+                fontSize: 16,
+                boxSizing: 'border-box',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+              onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
+            />
+          </Box>
+
+          <Box sx={{ mb: 1 }}>
+            <Typography component="label" htmlFor="password" sx={{ fontWeight: 'medium', mb: 1, display: 'block' }}>
+              Password
+            </Typography>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Create a strong password"
+              value={userDetails.password}
+              onChange={handleChange}
+              required
+              minLength={6}
+              style={{
+                width: '100%',
+                padding: '10px',
+                borderRadius: 6,
+                border: '1px solid #cbd5e1',
+                outline: 'none',
+                fontSize: 16,
+                boxSizing: 'border-box',
+              }}
+              onFocus={(e) => (e.target.style.borderColor = '#3b82f6')}
+              onBlur={(e) => (e.target.style.borderColor = '#cbd5e1')}
+            />
+            <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+              Password must be at least 6 characters
+            </Typography>
+          </Box>
+
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={loading}
+            sx={{ py: 1.5, borderRadius: 2, mt: 3, fontWeight: 'bold' }}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Sign Up'}
+          </Button>
+        </form>
+
+        <Box sx={{ mt: 4, textAlign: 'center' }}>
+          <Typography variant="body2" color="text.secondary">
             Already have an account?{' '}
-            <button 
-              type="button"
-              onClick={() => navigate('/login')} 
-              className="text-blue-600 hover:text-blue-800 font-medium"
+            <Box
+              component="span"
+              sx={{
+                color: 'primary.main',
+                fontWeight: 'medium',
+                cursor: 'pointer',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+              onClick={() => navigate('/login')}
             >
               Sign In
-            </button>
-          </p>
-        </div>
-      </form>
-    </div>
+            </Box>
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

@@ -1,31 +1,48 @@
-// src/utils/auth.ts
+
 
 // Constants
-export const TOKEN_KEY = 'jwtToken';  // Use a consistent token key across the app
+export const TOKEN_KEY = 'token';
 
-// Store the JWT token in localStorage
+// Token management
 export const setAuthToken = (token: string): void => {
   localStorage.setItem(TOKEN_KEY, token);
 };
 
-// Get the JWT token from localStorage
 export const getAuthToken = (): string | null => {
   return localStorage.getItem(TOKEN_KEY);
 };
 
-// Remove the JWT token from localStorage
 export const removeAuthToken = (): void => {
   localStorage.removeItem(TOKEN_KEY);
 };
 
-// Check if the user is authenticated
 export const isAuthenticated = (): boolean => {
   return !!getAuthToken();
 };
 
-// Set up axios interceptors for authentication headers
-export const setupAuthInterceptor = (axios: any) => {
-  axios.interceptors.request.use(
+// JWT token decoding
+export const decodeToken = (token?: string): any => {
+  const tokenToDecode = token || getAuthToken();
+  if (!tokenToDecode) return null;
+  
+  try {
+    const base64Url = tokenToDecode.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(window.atob(base64));
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+};
+
+export const getUserIdFromToken = (): string | null => {
+  const decoded = decodeToken();
+  return decoded?.userId || decoded?.sub || null;
+};
+
+// Axios interceptor setup
+export const setupAuthInterceptor = (axiosInstance: any) => {
+  axiosInstance.interceptors.request.use(
     (config: any) => {
       const token = getAuthToken();
       if (token) {

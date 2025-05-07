@@ -10,6 +10,7 @@ import Signup from './components/auth/Signup';
 import { isAuthenticated, setupAuthInterceptor } from './components/Authentication/auth';
 import axios from 'axios';
 import Navbar from './components/Navigation/NavBar';
+import { AuthProvider } from './components/Authentication/authContext';
 
 // Setup axios interceptors for automatic authentication headers
 setupAuthInterceptor(axios);
@@ -41,50 +42,57 @@ const Layout = ({ children }) => {
 
 function App() {
   return (
-    <Layout>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<Signin />} />
-        <Route path="/register" element={<Signup />} />
-        
-        {/* Protected routes */}
-        <Route path="/" element={
-          <ProtectedRoute>
-            <Home />
-          </ProtectedRoute>
-        } />
-        <Route path="/home" element={
-          <ProtectedRoute>
-            <Home />
-          </ProtectedRoute>
-        } />
-        <Route path="/profile" element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        } />
+    <AuthProvider>
+      <Layout>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<Signin />} />
+          <Route path="/register" element={<Signup />} />
+          
+          {/* Protected routes */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } />
+          <Route path="/home" element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/profile/:userId" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
 
-        {/* Add the rest of the routes mentioned in your NavBar */}
-        <Route path="/all-posts" element={
-          <ProtectedRoute>
-            <PostList />
-          </ProtectedRoute>
-        } />
-        <Route path="/create" element={
-          <ProtectedRoute>
-            <CreatePostForm />
-          </ProtectedRoute>
-        } />
-        <Route path="/my-posts" element={
-          <ProtectedRoute>
-            <MyPosts />
-          </ProtectedRoute>
-        } />
-        
-        {/* Redirect any unmatched route to home */}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </Layout>
+          {/* Add the rest of the routes mentioned in your NavBar */}
+          <Route path="/all-posts" element={
+            <ProtectedRoute>
+              <PostList />
+            </ProtectedRoute>
+          } />
+          <Route path="/create" element={
+            <ProtectedRoute>
+              <CreatePostForm />
+            </ProtectedRoute>
+          } />
+          <Route path="/my-posts" element={
+            <ProtectedRoute>
+              <MyPosts />
+            </ProtectedRoute>
+          } />
+          
+          {/* Redirect any unmatched route to home */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Layout>
+    </AuthProvider>
   );
 }
 

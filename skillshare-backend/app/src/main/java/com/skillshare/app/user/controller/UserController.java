@@ -82,17 +82,17 @@ public class UserController {
         return new ResponseEntity<>(userDtos, HttpStatus.ACCEPTED);
     }
 
-    @PutMapping("/{userid}/follow")
-    public ResponseEntity<UserDto> followUser(@PathVariable Long userid, @RequestHeader("Authorization") String token) throws UserException {
-        User reqUser = userService.findUserProfileByJwt(token);
-        User user = userService.followUser(userid, reqUser);
-    
-        UserDto userDto = UserDtoMapper.toUserDto(user);
-        userDto.setFollowed(UserUtil.isFollowedByReqUser(reqUser, user));
-    
-        return new ResponseEntity<>(userDto, HttpStatus.OK);
-    }
-    
+@PutMapping("/{userid}/follow")
+public ResponseEntity<UserDto> followUser(@PathVariable Long userid, @RequestHeader("Authorization") String token) throws UserException {
+    User reqUser = userService.findUserProfileByJwt(token);
+    User user = userService.followUser(userid, reqUser);
+
+    UserDto userDto = UserDtoMapper.toUserDto(user);
+    userDto.setFollowed(UserUtil.isFollowedByReqUser(reqUser, user));
+
+    return new ResponseEntity<>(userDto, HttpStatus.OK);
+}
+
 
     
 
