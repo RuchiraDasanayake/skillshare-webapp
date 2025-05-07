@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.skillshare.app.config.JwtProvider;
+import com.skillshare.app.config.TokenProvider;
 import com.skillshare.app.user.dto.UserDto;
 import com.skillshare.app.user.dto.Varification;
 import com.skillshare.app.user.exception.UserException;
@@ -37,7 +37,7 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private JwtProvider jwtProvider;
+    private TokenProvider jwtProvider;
 
     @Autowired
     private CustomUserDetailsServiceImplementation customerUserDetails;
