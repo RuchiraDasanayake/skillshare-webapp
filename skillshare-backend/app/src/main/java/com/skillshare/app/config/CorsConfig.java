@@ -24,17 +24,33 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @EnableWebSecurity
 public class CorsConfig {
+
+    private static final String[] ALLOWED_ORIGINS = {
+        "http://localhost:5173",         
+    };
+
+    private static final String API_PATH = "/api/**";
+    private static final String[] ALLOWED_METHODS = {
+        "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"
+    };
+
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
-            @SuppressWarnings("null")
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/api/**") // Allow CORS for your API endpoints
-                        .allowedOrigins("http://localhost:5173") // Frontend React URL
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // Allowed HTTP methods
-                        .allowedHeaders("*") // Allow all headers
-                        .allowCredentials(true); // Allow sending cookies or authentication headers
+                registry.addMapping(API_PATH)
+                        .allowedOrigins(ALLOWED_ORIGINS)
+                        .allowedMethods(ALLOWED_METHODS)
+                        .allowedHeaders("*")
+                        .exposedHeaders(
+                            "Authorization", 
+                            "Content-Type",
+                            "Content-Disposition",
+                            "X-Requested-With"
+                        )
+                        .allowCredentials(true)
+                        .maxAge(3600); // 1 hour cache for preflight responses
             }
         };
     }

@@ -42,5 +42,4 @@ Thumbs.db
 
 #ignore .env
 .env
-firebaseConfig.ts
 
