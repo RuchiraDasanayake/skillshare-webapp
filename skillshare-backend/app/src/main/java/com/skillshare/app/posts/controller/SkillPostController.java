@@ -7,22 +7,15 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.skillshare.app.posts.dto.CommentDto;
 import com.skillshare.app.posts.dto.LikeDto;
 import com.skillshare.app.posts.dto.SkillPostDto;
 import com.skillshare.app.posts.service.SkillPostService;
 import com.skillshare.app.user.exception.UserException;
+import com.skillshare.app.user.model.User;
+import com.skillshare.app.user.service.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -33,11 +26,18 @@ import lombok.RequiredArgsConstructor;
 public class SkillPostController {
 
     private final SkillPostService skillPostService;
-    
+    private final UserService userService; // ✅ Injected to extract user from token
+
+    // ✅ Updated method with token parsing and user assignment
     @PostMapping
     public ResponseEntity<SkillPostDto> createPost(
-            @RequestBody @Valid SkillPostDto postDto, @RequestHeader("Authorization") String token) throws UserException {
-                
+            @RequestBody @Valid SkillPostDto postDto,
+            @RequestHeader("Authorization") String token) throws UserException {
+
+        User reqUser = userService.findUserProfileByJwt(token);
+
+        postDto.setUserId(reqUser.getId());
+
         SkillPostDto createdPost = skillPostService.createPost(postDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
     }
@@ -69,7 +69,7 @@ public class SkillPostController {
         return ResponseEntity.noContent().build();
     }
 
-    // Comment Endpoints
+    // Comments
     @PostMapping("/{postId}/comments")
     public ResponseEntity<CommentDto> addComment(
             @PathVariable Long postId,
@@ -92,11 +92,11 @@ public class SkillPostController {
         return ResponseEntity.noContent().build();
     }
 
-    // Like Endpoints
+    // Likes
     @PostMapping("/{postId}/likes")
     public ResponseEntity<LikeDto> likePost(
             @PathVariable Long postId,
-            @RequestParam String userId) {
+            @RequestParam Long userId) {
         LikeDto like = skillPostService.likePost(postId, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(like);
     }
@@ -104,7 +104,7 @@ public class SkillPostController {
     @DeleteMapping("/{postId}/likes")
     public ResponseEntity<Void> unlikePost(
             @PathVariable Long postId,
-            @RequestParam String userId) {
+            @RequestParam Long userId) {
         skillPostService.unlikePost(postId, userId);
         return ResponseEntity.noContent().build();
     }
@@ -118,7 +118,7 @@ public class SkillPostController {
     @GetMapping("/{postId}/likes/check")
     public ResponseEntity<Boolean> hasUserLikedPost(
             @PathVariable Long postId,
-            @RequestParam String userId) {
+            @RequestParam Long userId) {
         boolean hasLiked = skillPostService.hasUserLikedPost(postId, userId);
         return ResponseEntity.ok(hasLiked);
     }

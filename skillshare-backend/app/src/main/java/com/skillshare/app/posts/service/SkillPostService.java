@@ -5,6 +5,9 @@ import com.skillshare.app.posts.exception.ResourceNotFoundException;
 import com.skillshare.app.posts.model.*;
 import com.skillshare.app.posts.repository.*;
 import com.skillshare.app.posts.util.EntityDtoMapper;
+import com.skillshare.app.user.exception.UserException;
+import com.skillshare.app.user.model.User;
+import com.skillshare.app.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -18,23 +21,26 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class SkillPostService {
+
     private final SkillPostRepository postRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
+    private final UserRepository userRepository; // ✅ Needed to fetch User
     private final EntityDtoMapper mapper;
 
     // Post Operations
     @Transactional
     public SkillPostDto createPost(SkillPostDto postDto) {
-        SkillPost post = new SkillPost();
-        post.setTitle(postDto.getTitle());
-        post.setDescription(postDto.getDescription());
-        post.setUserId(postDto.getUserId());
-        post.setSkillCategory(postDto.getSkillCategory());
+        User user = userRepository.findById(postDto.getUserId())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + postDto.getUserId()));
+
+        SkillPost post = mapper.toSkillPost(postDto, user);
+
         // Ensure mediaUrls is set properly
-        post.setMediaUrls(postDto.getMediaUrls() != null ? 
-            postDto.getMediaUrls() : new ArrayList<>());
-        
+        if (post.getMediaUrls() == null) {
+            post.setMediaUrls(new ArrayList<>());
+        }
+
         SkillPost savedPost = postRepository.save(post);
         return mapper.toSkillPostDto(savedPost);
     }
@@ -56,12 +62,12 @@ public class SkillPostService {
     public SkillPostDto updatePost(Long id, SkillPostDto postDto) {
         SkillPost post = postRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
-        
+
         post.setTitle(postDto.getTitle());
         post.setDescription(postDto.getDescription());
         post.setSkillCategory(postDto.getSkillCategory());
-        post.setMediaUrls(postDto.getMediaUrls()); // Update media URLs
-        
+        post.setMediaUrls(postDto.getMediaUrls());
+
         SkillPost updatedPost = postRepository.save(post);
         return mapper.toSkillPostDto(updatedPost);
     }
@@ -73,23 +79,26 @@ public class SkillPostService {
         postRepository.delete(post);
     }
 
-    // Comment Operations (unchanged)
+    // Comment Operations
     @Transactional
     public CommentDto addComment(Long postId, CommentDto commentDto) {
         SkillPost post = postRepository.findById(postId)
             .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
-        
+
+        User user = userRepository.findById(commentDto.getUserId())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + commentDto.getUserId()));
+
         Comment comment = new Comment();
         comment.setContent(commentDto.getContent());
-        comment.setUserId(commentDto.getUserId());
-        
+        comment.setUser(user); // ✅ Set actual user object
+        comment.setPost(post);
+
         if (commentDto.getParentCommentId() != null) {
             Comment parent = commentRepository.findById(commentDto.getParentCommentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Parent comment not found"));
             comment.setParentComment(parent);
         }
-        
-        post.addComment(comment);
+
         Comment savedComment = commentRepository.save(comment);
         return mapper.toCommentDto(savedComment);
     }
@@ -98,7 +107,7 @@ public class SkillPostService {
     public CommentDto updateComment(Long commentId, CommentDto commentDto) {
         Comment comment = commentRepository.findById(commentId)
             .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
-        
+
         comment.setContent(commentDto.getContent());
         Comment updatedComment = commentRepository.save(comment);
         return mapper.toCommentDto(updatedComment);
@@ -111,26 +120,29 @@ public class SkillPostService {
         commentRepository.delete(comment);
     }
 
-    // Like Operations (unchanged)
+    // Like Operations
     @Transactional
-    public LikeDto likePost(Long postId, String userId) {
+    public LikeDto likePost(Long postId, Long userId) {
         SkillPost post = postRepository.findById(postId)
             .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + postId));
-        
+
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
         likeRepository.findByUserIdAndPostId(userId, postId)
             .ifPresent(_ -> {
                 throw new IllegalStateException("User already liked this post");
             });
-        
+
         Like like = new Like();
-        like.setUserId(userId);
-        post.addLike(like);
+        like.setUser(user); // ✅ Link user entity
+        like.setPost(post);
         Like savedLike = likeRepository.save(like);
         return mapper.toLikeDto(savedLike);
     }
 
     @Transactional
-    public void unlikePost(Long postId, String userId) {
+    public void unlikePost(Long postId, Long userId) {
         Like like = likeRepository.findByUserIdAndPostId(userId, postId)
             .orElseThrow(() -> new ResourceNotFoundException("Like not found"));
         likeRepository.delete(like);
@@ -142,7 +154,7 @@ public class SkillPostService {
     }
 
     @Transactional(readOnly = true)
-    public boolean hasUserLikedPost(Long postId, String userId) {
+    public boolean hasUserLikedPost(Long postId, Long userId) {
         return likeRepository.findByUserIdAndPostId(userId, postId).isPresent();
     }
 

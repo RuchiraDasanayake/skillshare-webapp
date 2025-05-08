@@ -11,7 +11,7 @@ import com.skillshare.app.posts.model.Like;
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
     
-    Optional<Like> findByUserIdAndPostId(String userId, Long postId);
+    Optional<Like> findByUserIdAndPostId(Long userId, Long postId);
     int countByPostId(Long postId);
 
   
