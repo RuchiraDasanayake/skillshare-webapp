@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+
+import com.skillshare.app.user.model.User;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,8 +25,10 @@ public class SkillPost {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "user_id", nullable = false)
-    private String userId;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
 
     @Column(nullable = false)
     private String skillCategory;

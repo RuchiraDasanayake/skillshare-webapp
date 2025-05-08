@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+
 const BASE_URL = 'http://localhost:8080/api/posts';
 
 export interface SkillPostDto {
@@ -64,6 +65,21 @@ const api = axios.create({
   timeout: 5000,
 });
 
+// 🔐 Helper: Get token and user ID
+function getAuthHeaders() {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+function getCurrentUserId(): number {
+  const id = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+  console.log("userId", id)
+  return id ? parseInt(id, 10) : 0;
+}
+
+
 // Helper function for consistent error handling
 function handleError(error: unknown): never {
   if (axios.isAxiosError(error)) {
@@ -73,11 +89,78 @@ function handleError(error: unknown): never {
   throw new Error('An unexpected error occurred');
 }
 
-// Post Operations
+export const loginUser = (loginData) => async (dispatch) => {
+  try {
+    const response = await axios.post("http://localhost:8080/api/auth/signin", loginData);
+
+    dispatch({ type: "LOGIN_SUCCESS", payload: response.data });
+
+    return response.data;
+  } catch (error) {
+    dispatch({ type: "LOGIN_FAILURE", payload: error });
+
+    // Ensure the error bubbles up to onSubmit
+    throw error;
+  }
+};
+
+
+
+
+export const registernUser = (RegisterData: unknown) => async (dispatch: any)=> {
+  try {
+    const {data} = await axios.post(`http://localhost:8080/api//auth/signup`, RegisterData)
+    console.log("register data", data)
+    if (data.jwt){
+      localStorage.setItem("token", data.jwt);
+    }
+      dispatch({
+        type: "REGISTER_USER_SUCCESS",
+        payload: data.jwt,
+      });
+    
+  } catch (error) {
+    console.error("Error logging in:", error);
+    dispatch({
+      type: "REGISTER_USER_FAILURE",
+      payload: axios.isAxiosError(error) ? error.message : 'An unexpected error occurred'
+    });
+  }
+}
+
+export const getUserProfile = (jwt: any) => async (dispatch: any) => {
+  try {
+    const {data} = await axios.get(`http://localhost:8080/api//users/profile`, {
+      headers: {
+        "Authorization": `Bearer ${jwt}`
+      }
+    })
+    if (data.jwt){
+      localStorage.setItem("token", data.jwt);
+    }
+      dispatch({
+        type: "GET_USER_PROFILE_SUCCESS",
+        payload: data,
+      });
+  } catch (error) {
+    console.error("Error logging in:", error);
+    dispatch({
+      type: "GET_USER_PROFILE_FAILURE",
+      payload: axios.isAxiosError(error) ? error.message : 'An unexpected error occurred'
+    });
+  }
+}
+
+
+/// 📦 Post API
 export const postApi = {
   create: async (postData: SkillPostDto): Promise<SkillPostDto> => {
     try {
-      const response = await api.post<SkillPostDto>('', postData);
+      const userId = getCurrentUserId();
+      const payload = { ...postData, userId };
+      const response = await api.post<SkillPostDto>('', payload, {
+        headers: getAuthHeaders(),
+      });
       return response.data;
     } catch (error) {
       return handleError(error);
@@ -86,7 +169,9 @@ export const postApi = {
 
   getById: async (id: number): Promise<SkillPostDto> => {
     try {
-      const response = await api.get<SkillPostDto>(`/${id}`);
+      const response = await api.get<SkillPostDto>(`/${id}`, {
+        headers: getAuthHeaders(),
+      });
       return response.data;
     } catch (error) {
       return handleError(error);
@@ -96,10 +181,8 @@ export const postApi = {
   getAll: async (page: number = 0, size: number = 10): Promise<Page<SkillPostDto>> => {
     try {
       const response = await api.get<Page<SkillPostDto>>('/all', {
-        params: { 
-          page,
-          size
-        }
+        headers: getAuthHeaders(),
+        params: { page, size },
       });
       return response.data;
     } catch (error) {
@@ -107,12 +190,11 @@ export const postApi = {
     }
   },
 
-  update: async (
-    id: number,
-    postData: SkillPostDto
-  ): Promise<SkillPostDto> => {
+  update: async (id: number, postData: SkillPostDto): Promise<SkillPostDto> => {
     try {
-      const response = await api.put<SkillPostDto>(`/${id}`, postData);
+      const response = await api.put<SkillPostDto>(`/${id}`, postData, {
+        headers: getAuthHeaders(),
+      });
       return response.data;
     } catch (error) {
       return handleError(error);
@@ -121,21 +203,24 @@ export const postApi = {
 
   delete: async (id: number): Promise<void> => {
     try {
-      await api.delete(`/${id}`);
+      await api.delete(`/${id}`, {
+        headers: getAuthHeaders(),
+      });
     } catch (error) {
       return handleError(error);
     }
-  }
+  },
 };
 
-// Comment Operations
+// 💬 Comment API
 export const commentApi = {
-  create: async (
-    postId: number,
-    commentData: CommentDto
-  ): Promise<CommentDto> => {
+  create: async (postId: number, commentData: CommentDto): Promise<CommentDto> => {
     try {
-      const response = await api.post<CommentDto>(`/${postId}/comments`, commentData);
+      const userId = getCurrentUserId();
+      const payload = { ...commentData, userId };
+      const response = await api.post<CommentDto>(`/${postId}/comments`, payload, {
+        headers: getAuthHeaders(),
+      });
       return response.data;
     } catch (error) {
       return handleError(error);
@@ -144,7 +229,9 @@ export const commentApi = {
 
   update: async (commentId: number, commentData: CommentDto): Promise<CommentDto> => {
     try {
-      const response = await api.put<CommentDto>(`/comments/${commentId}`, commentData);
+      const response = await api.put<CommentDto>(`/comments/${commentId}`, commentData, {
+        headers: getAuthHeaders(),
+      });
       return response.data;
     } catch (error) {
       return handleError(error);
@@ -153,7 +240,9 @@ export const commentApi = {
 
   delete: async (commentId: number): Promise<void> => {
     try {
-      await api.delete(`/comments/${commentId}`);
+      await api.delete(`/comments/${commentId}`, {
+        headers: getAuthHeaders(),
+      });
     } catch (error) {
       return handleError(error);
     }
@@ -161,20 +250,24 @@ export const commentApi = {
 
   getByPost: async (postId: number): Promise<CommentDto[]> => {
     try {
-      const response = await api.get<CommentDto[]>(`/${postId}/comments/all`);
+      const response = await api.get<CommentDto[]>(`/${postId}/comments/all`, {
+        headers: getAuthHeaders(),
+      });
       return response.data;
     } catch (error) {
       return handleError(error);
     }
-  }
+  },
 };
 
-// Like Operations
+// ❤️ Like API
 export const likeApi = {
-  like: async (postId: number, userId: string): Promise<LikeDto> => {
+  like: async (postId: number): Promise<LikeDto> => {
     try {
+      const userId = getCurrentUserId();
       const response = await api.post<LikeDto>(`/${postId}/likes`, null, {
-        params: { userId }
+        headers: getAuthHeaders(),
+        params: { userId },
       });
       return response.data;
     } catch (error) {
@@ -182,10 +275,12 @@ export const likeApi = {
     }
   },
 
-  unlike: async (postId: number, userId: string): Promise<void> => {
+  unlike: async (postId: number): Promise<void> => {
     try {
+      const userId = getCurrentUserId();
       await api.delete(`/${postId}/likes`, {
-        params: { userId }
+        headers: getAuthHeaders(),
+        params: { userId },
       });
     } catch (error) {
       return handleError(error);
@@ -194,24 +289,33 @@ export const likeApi = {
 
   getCount: async (postId: number): Promise<number> => {
     try {
-      const response = await api.get<number>(`/${postId}/likes/count`);
+      const response = await api.get<number>(`/${postId}/likes/count`, {
+        headers: getAuthHeaders(),
+      });
       return response.data;
     } catch (error) {
       return handleError(error);
     }
   },
 
-  checkLike: async (postId: number, userId: string): Promise<boolean> => {
+  checkLike: async (postId: number): Promise<boolean> => {
     try {
+      const userId = getCurrentUserId();
       const response = await api.get<boolean>(`/${postId}/likes/check`, {
-        params: { userId }
+        headers: getAuthHeaders(),
+        params: { userId },
       });
       return response.data;
     } catch (error) {
       return handleError(error);
     }
-  }
-
+  },
 };
 
-export const CURRENT_USER_ID = "Ruchira"; 
+// Optional: Set on login
+export const setCurrentUserSession = (token: string, userId: number) => {
+  localStorage.setItem('token', token);
+  localStorage.setItem('userId', userId.toString());
+};
+
+export const CURRENT_USER_ID = getCurrentUserId();  
