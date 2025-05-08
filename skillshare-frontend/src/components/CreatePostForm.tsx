@@ -225,7 +225,7 @@ const CreatePostForm: React.FC = () => {
       await postApi.create({
         ...formData,
         mediaUrls,
-        userId: CURRENT_USER_ID
+        userId: String(CURRENT_USER_ID)
       });
 
       setFormData({ title: '', description: '', skillCategory: '' });

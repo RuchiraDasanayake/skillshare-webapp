@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class LikeDto {
     private Long id;
-    private String userId;
+    private Long userId;
     private Long postId;
     private UserDto user;
     private SkillPostDto post;

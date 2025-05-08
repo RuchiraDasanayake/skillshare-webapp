@@ -9,6 +9,6 @@ import com.skillshare.app.posts.model.SkillPost;
 
 @Repository
 public interface SkillPostRepository extends JpaRepository<SkillPost, Long> {
-    List<SkillPost> findByUserId(String userId);
+    List<SkillPost> findByUserId(Long userId);
     List<SkillPost> findBySkillCategory(String skillCategory);
 }
