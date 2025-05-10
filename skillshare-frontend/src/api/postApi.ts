@@ -189,6 +189,17 @@ export const postApi = {
       return handleError(error);
     }
   },
+  getUserPosts: async (page: number = 0, size: number = 10): Promise<Page<SkillPostDto>> => {
+    try {
+      const response = await api.get<Page<SkillPostDto>>('/user', {
+        headers: getAuthHeaders(),
+        params: { page, size },
+      });
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
+  },
 
   update: async (id: number, postData: SkillPostDto): Promise<SkillPostDto> => {
     try {

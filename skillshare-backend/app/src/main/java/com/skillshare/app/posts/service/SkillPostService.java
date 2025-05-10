@@ -2,6 +2,7 @@ package com.skillshare.app.posts.service;
 
 import com.skillshare.app.posts.dto.*;
 import com.skillshare.app.posts.exception.ResourceNotFoundException;
+import com.skillshare.app.posts.exception.UnauthorizedException;
 import com.skillshare.app.posts.model.*;
 import com.skillshare.app.posts.repository.*;
 import com.skillshare.app.posts.util.EntityDtoMapper;
@@ -25,7 +26,7 @@ public class SkillPostService {
     private final SkillPostRepository postRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
-    private final UserRepository userRepository; // ✅ Needed to fetch User
+    private final UserRepository userRepository;
     private final EntityDtoMapper mapper;
 
     // Post Operations
@@ -58,10 +59,28 @@ public class SkillPostService {
             .map(mapper::toSkillPostDto);
     }
 
+    @Transactional(readOnly = true)
+    public Page<SkillPostDto> getUserPosts(Long userId, Pageable pageable) {
+        return postRepository.findByUserId(userId, pageable)
+            .map(mapper::toSkillPostDto);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SkillPostDto> getPostsByCategory(String category) {
+        return postRepository.findBySkillCategory(category).stream()
+            .map(mapper::toSkillPostDto)
+            .collect(Collectors.toList());
+    }
+
     @Transactional
-    public SkillPostDto updatePost(Long id, SkillPostDto postDto) {
+    public SkillPostDto updatePost(Long id, SkillPostDto postDto, Long userId) {
         SkillPost post = postRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
+
+        // Verify ownership
+        if (!post.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("You are not authorized to update this post");
+        }
 
         post.setTitle(postDto.getTitle());
         post.setDescription(postDto.getDescription());
@@ -73,9 +92,15 @@ public class SkillPostService {
     }
 
     @Transactional
-    public void deletePost(Long id) {
+    public void deletePost(Long id, Long userId) {
         SkillPost post = postRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Post not found with id: " + id));
+
+        // Verify ownership
+        if (!post.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("You are not authorized to delete this post");
+        }
+
         postRepository.delete(post);
     }
 
@@ -90,7 +115,7 @@ public class SkillPostService {
 
         Comment comment = new Comment();
         comment.setContent(commentDto.getContent());
-        comment.setUser(user); // ✅ Set actual user object
+        comment.setUser(user);
         comment.setPost(post);
 
         if (commentDto.getParentCommentId() != null) {
@@ -104,9 +129,14 @@ public class SkillPostService {
     }
 
     @Transactional
-    public CommentDto updateComment(Long commentId, CommentDto commentDto) {
+    public CommentDto updateComment(Long commentId, CommentDto commentDto, Long userId) {
         Comment comment = commentRepository.findById(commentId)
             .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
+
+        // Verify ownership
+        if (!comment.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("You are not authorized to update this comment");
+        }
 
         comment.setContent(commentDto.getContent());
         Comment updatedComment = commentRepository.save(comment);
@@ -114,9 +144,15 @@ public class SkillPostService {
     }
 
     @Transactional
-    public void deleteComment(Long commentId) {
+    public void deleteComment(Long commentId, Long userId) {
         Comment comment = commentRepository.findById(commentId)
             .orElseThrow(() -> new ResourceNotFoundException("Comment not found with id: " + commentId));
+
+        // Verify ownership
+        if (!comment.getUser().getId().equals(userId)) {
+            throw new UnauthorizedException("You are not authorized to delete this comment");
+        }
+
         commentRepository.delete(comment);
     }
 
@@ -135,7 +171,7 @@ public class SkillPostService {
             });
 
         Like like = new Like();
-        like.setUser(user); // ✅ Link user entity
+        like.setUser(user);
         like.setPost(post);
         Like savedLike = likeRepository.save(like);
         return mapper.toLikeDto(savedLike);
