@@ -1,9 +1,11 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { isAuthenticated, logout } from "../Authentication/auth"; // adjust the path if needed
 
 const Navbar: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { path: "/", icon: "🏠", text: "Home" },
@@ -12,6 +14,11 @@ const Navbar: React.FC = () => {
     { path: "/my-posts", icon: "📚", text: "My Posts" },
     { path: "/profile", icon: "👤", text: "Profile" },
   ];
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <motion.nav
@@ -31,7 +38,7 @@ const Navbar: React.FC = () => {
         </Link>
 
         {/* Navigation Links */}
-        <ul className="flex space-x-4">
+        <ul className="flex space-x-4 items-center">
           {navItems.map(({ path, icon, text }) => {
             const isActive = location.pathname === path;
 
@@ -55,6 +62,19 @@ const Navbar: React.FC = () => {
               </motion.li>
             );
           })}
+
+          {/* ✅ Logout Button (if authenticated) */}
+          {isAuthenticated() && (
+            <motion.li whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }}>
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 px-4 py-2 rounded-md bg-red-100 text-red-700 hover:bg-red-200 transition duration-200 font-medium"
+              >
+                <span className="text-lg">🚪</span>
+                <span>Logout</span>
+              </button>
+            </motion.li>
+          )}
         </ul>
       </div>
     </motion.nav>
