@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { postApi, CURRENT_USER_ID } from "../api/postApi";
+import { postApi } from "../api/postApi";
 import PostCard from "./PostCard";
 import { Loader2, AlertCircle, Plus, Rocket, Edit, Trash2, MoreVertical, X, Search } from "lucide-react";
 import { useInView } from "react-intersection-observer";
@@ -42,22 +42,19 @@ const MyPosts: React.FC = () => {
   const loadPosts = useCallback(async (pageNum: number, reset: boolean = false) => {
     try {
       setLoading(true);
-      const response = await postApi.getAll(pageNum, 10);
-      
-      const userPosts = response.content.filter(
-        (post: any) => post.userId === CURRENT_USER_ID
-      );
+      // Use getUserPosts instead of getAll and filtering
+      const response = await postApi.getUserPosts(pageNum, 10);
       
       if (reset) {
-        setPosts(userPosts);
+        setPosts(response.content);
       } else {
-        setPosts(prev => [...prev, ...userPosts]);
+        setPosts(prev => [...prev, ...response.content]);
       }
       
       // Extract unique categories for reference
       if (reset) {
         const uniqueCategories = Array.from(
-          new Set(userPosts.map((post: any) => post.skillCategory))
+          new Set(response.content.map((post: any) => post.skillCategory))
         ).filter(Boolean) as string[];
         setCategories(uniqueCategories);
       }
@@ -294,7 +291,7 @@ const MyPosts: React.FC = () => {
                             title: updatedData.title,
                             description: updatedData.description,
                             skillCategory: updatedData.skillCategory,
-                            userId: CURRENT_USER_ID,
+                            userId: post.userId, // Use the post's userId
                             mediaUrls: updatedData.mediaUrls
                           });
                           
