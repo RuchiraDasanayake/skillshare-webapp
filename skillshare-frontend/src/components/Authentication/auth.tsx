@@ -19,6 +19,11 @@ export const removeAuthToken = (): void => {
 export const isAuthenticated = (): boolean => {
   return !!getAuthToken();
 };
+export const logout = () => {
+  localStorage.removeItem('token');
+  sessionStorage.removeItem('userId');
+};
+
 
 // JWT token decoding
 export const decodeToken = (token?: string): any => {
